@@ -3,9 +3,14 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
-import { Plane, Clock, Calendar, CheckCircle, ArrowRight, FileText, Percent, DollarSign, Info, Scale, Shield, Zap } from "lucide-react";
+import { Plane, Clock, Calendar, CheckCircle, ArrowRight, FileText, Percent, DollarSign, Info, Scale, Shield, Zap, Globe } from "lucide-react";
 import LoadingDots from "../components/LoadingDots";
 import DropDown, { CasoType } from "../components/DropDown";
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { GetStaticProps } from 'next';
+import { useRouter } from 'next/router';
+import Link from 'next/link';
 
 // URL base da API
 const API_URL = "https://web-production-192c4.up.railway.app";
@@ -51,7 +56,39 @@ const mobilePageVariants = {
   })
 };
 
+// Adicionar estilos personalizados para a barra de rolagem
+const customStyles = `
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+  }
+  
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.3);
+  }
+`;
+
+export const getStaticProps: GetStaticProps = async ({ locale }) => {
+  return {
+    props: {
+      ...(await serverSideTranslations(locale || 'pt', ['common'])),
+    },
+  };
+};
+
 export default function Home() {
+  const { t } = useTranslation('common');
+  const router = useRouter();
+  const { locale } = router;
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(0); // Começamos com o step 0 (tela inicial)
   const [[page, direction], setPage] = useState([0, 0]);
@@ -209,6 +246,36 @@ export default function Home() {
     }
   };
 
+  const handleVoltarAoInicio = () => {
+    setStep(0);
+    setPage([0, 0]);
+    setFormData({
+      nome: "",
+      email: "",
+      telefone: "",
+      tipoCaso: "Voo Atrasado",
+      numeroVoo: "",
+      dataVoo: "",
+      companhiaAerea: "",
+      descricao: "",
+      valorCompensacao: "",
+    });
+    setResultado({
+      peticao: "",
+      probabilidadeVitoria: 0,
+      valorEstimado: 0,
+      instrucoes: "",
+      resumo: "",
+      regulacoes: "",
+      planoAcao: "",
+    });
+  };
+
+  const changeLanguage = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const locale = e.target.value;
+    router.push(router.pathname, router.asPath, { locale });
+  };
+
   const renderStep = () => {
     // Usar variantes diferentes para mobile e desktop
     const variants = isMobile ? mobilePageVariants : pageVariants;
@@ -224,7 +291,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6"
+            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6 h-full flex flex-col justify-center"
           >
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -246,7 +313,7 @@ export default function Home() {
                 transition={{ delay: 0.4, duration: 0.5 }}
                 className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4"
               >
-                Seus direitos aéreos, <span className="text-white">simplificados</span>
+                {t('welcome.title')}
               </motion.h1>
               <motion.p 
                 initial={{ opacity: 0, y: 20 }}
@@ -254,7 +321,7 @@ export default function Home() {
                 transition={{ delay: 0.5, duration: 0.5 }}
                 className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto"
               >
-                Gere petições jurídicas profissionais em minutos. Recupere o que é seu com a ajuda da inteligência artificial.
+                {t('welcome.subtitle')}
               </motion.p>
             </motion.div>
             
@@ -271,9 +338,9 @@ export default function Home() {
                 <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-3 sm:mb-4 mx-auto">
                   <Shield className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">Proteção Legal</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">{t('welcome.features.legal.title')}</h3>
                 <p className="text-sm sm:text-base text-white/70">
-                  Petições baseadas nas regulamentações mais recentes do setor aéreo.
+                  {t('welcome.features.legal.description')}
                 </p>
               </motion.div>
               
@@ -284,9 +351,9 @@ export default function Home() {
                 <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-3 sm:mb-4 mx-auto">
                   <Zap className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">Rápido e Eficiente</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">{t('welcome.features.fast.title')}</h3>
                 <p className="text-sm sm:text-base text-white/70">
-                  Gere documentos prontos para apresentação em questão de minutos.
+                  {t('welcome.features.fast.description')}
                 </p>
               </motion.div>
               
@@ -297,9 +364,9 @@ export default function Home() {
                 <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-3 sm:mb-4 mx-auto">
                   <Percent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">Alta Probabilidade</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white mb-1 sm:mb-2">{t('welcome.features.probability.title')}</h3>
                 <p className="text-sm sm:text-base text-white/70">
-                  Avaliação precisa da viabilidade do seu caso e valor estimado.
+                  {t('welcome.features.probability.description')}
                 </p>
               </motion.div>
             </motion.div>
@@ -313,7 +380,7 @@ export default function Home() {
               onClick={handleNextStep}
               className="bg-white text-dark-950 px-6 sm:px-8 py-2 sm:py-3 rounded-lg hover:bg-white/90 transition-colors flex items-center mx-auto text-base sm:text-lg font-medium"
             >
-              Começar agora
+              {t('welcome.cta')}
               <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
             </motion.button>
           </motion.div>
@@ -328,7 +395,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
@@ -336,7 +403,7 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
             >
-              Seus dados pessoais
+              {t('form.personal.title')}
             </motion.h2>
             <motion.div 
               initial={{ opacity: 0 }}
@@ -349,14 +416,14 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Nome completo</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.personal.name')}</label>
                 <input
                   type="text"
                   name="nome"
                   value={formData.nome}
                   onChange={handleInputChange}
                   className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
-                  placeholder="Digite seu nome completo"
+                  placeholder={t('form.personal.name')}
                 />
               </motion.div>
               <motion.div
@@ -364,14 +431,14 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">E-mail</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.personal.email')}</label>
                 <input
                   type="email"
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
                   className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
-                  placeholder="Digite seu e-mail"
+                  placeholder={t('form.personal.email')}
                 />
               </motion.div>
               <motion.div
@@ -379,14 +446,14 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Telefone</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.personal.phone')}</label>
                 <input
                   type="tel"
                   name="telefone"
                   value={formData.telefone}
                   onChange={handleInputChange}
                   className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
-                  placeholder="Digite seu telefone"
+                  placeholder={t('form.personal.phone')}
                 />
               </motion.div>
             </motion.div>
@@ -402,7 +469,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
@@ -410,7 +477,7 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
             >
-              Detalhes do voo
+              {t('form.flight.title')}
             </motion.h2>
             <motion.div 
               initial={{ opacity: 0 }}
@@ -423,7 +490,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Tipo de problema</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.type')}</label>
                 <DropDown caso={formData.tipoCaso} setCaso={handleTipoCasoChange} />
               </motion.div>
               <motion.div
@@ -431,7 +498,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Número do voo</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.number')}</label>
                 <input
                   type="text"
                   name="numeroVoo"
@@ -446,7 +513,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.6, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Data do voo</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.date')}</label>
                 <input
                   type="date"
                   name="dataVoo"
@@ -460,7 +527,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.7, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Companhia aérea</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.airline')}</label>
                 <input
                   type="text"
                   name="companhiaAerea"
@@ -483,7 +550,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
@@ -491,7 +558,7 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
             >
-              Descrição do problema
+              {t('form.description.title')}
             </motion.h2>
             <motion.div 
               initial={{ opacity: 0 }}
@@ -504,14 +571,14 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Descreva o que aconteceu</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.description.description')}</label>
                 <textarea
                   name="descricao"
                   value={formData.descricao}
                   onChange={handleInputChange}
                   rows={4}
                   className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10 resize-none"
-                  placeholder="Descreva detalhadamente o que aconteceu com seu voo"
+                  placeholder={t('form.description.description')}
                 />
               </motion.div>
               <motion.div
@@ -519,7 +586,7 @@ export default function Home() {
                 animate={{ x: 0, opacity: 1 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
               >
-                <label className="block text-sm text-white/60 mb-1">Valor da passagem (R$)</label>
+                <label className="block text-sm text-white/60 mb-1">{t('form.description.value')}</label>
                 <input
                   type="text"
                   name="valorCompensacao"
@@ -542,7 +609,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-2xl mx-auto px-4 sm:px-0"
+            className="w-full h-full flex flex-col"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
@@ -550,124 +617,127 @@ export default function Home() {
               transition={{ delay: 0.2, duration: 0.5 }}
               className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
             >
-              Sua petição está pronta!
+              {t('result.title')}
             </motion.h2>
             
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.3, duration: 0.5 }}
-              className="grid grid-cols-1 sm:grid-cols-3 gap-3 sm:gap-4 mb-6 sm:mb-8"
-            >
+            <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+              {/* Seção de estatísticas */}
               <motion.div 
-                whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-                className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10"
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.3, duration: 0.5 }}
+                className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6"
               >
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
-                  <Percent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1">Probabilidade de vitória</h3>
-                <p className="text-2xl sm:text-3xl font-bold text-white">{resultado.probabilidadeVitoria}%</p>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-                className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10"
-              >
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
-                  <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1">Valor estimado</h3>
-                <p className="text-2xl sm:text-3xl font-bold text-white">R$ {resultado.valorEstimado.toFixed(2)}</p>
-              </motion.div>
-              
-              <motion.div 
-                whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
-                className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10"
-              >
-                <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
-                  <FileText className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                </div>
-                <h3 className="text-base sm:text-lg font-semibold text-white mb-1">Petição gerada</h3>
-                <p className="text-white/80">Pronta para apresentação</p>
-              </motion.div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.4, duration: 0.5 }}
-              className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10 mb-4 sm:mb-6"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center">
-                <Info className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-white" />
-                Instruções para apresentação
-              </h3>
-              <ul className="space-y-2 text-white/80">
-                {resultado.instrucoes.split('\n').map((instrucao, index) => (
-                  <motion.li 
-                    key={index} 
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
-                    className="flex items-start text-sm sm:text-base"
-                  >
-                    <span className="text-white mr-2">•</span>
-                    {instrucao}
-                  </motion.li>
-                ))}
-              </ul>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.5, duration: 0.5 }}
-              className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10 mb-4 sm:mb-6"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Resumo do caso</h3>
-              <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
-                <p className="text-sm sm:text-base text-white/80 whitespace-pre-wrap">{resultado.resumo}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.6, duration: 0.5 }}
-              className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10 mb-4 sm:mb-6"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Regulamentações aplicáveis</h3>
-              <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
-                <p className="text-sm sm:text-base text-white/80 whitespace-pre-wrap">{resultado.regulacoes}</p>
-              </div>
-            </motion.div>
-            
-            <motion.div 
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.7, duration: 0.5 }}
-              className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
-            >
-              <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">Petição gerada</h3>
-              <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4 max-h-40 sm:max-h-60 overflow-y-auto">
-                <pre className="text-xs sm:text-sm text-white/80 whitespace-pre-wrap">{resultado.peticao}</pre>
-              </div>
-              <div className="mt-3 sm:mt-4 flex justify-end">
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  className="bg-white text-dark-950 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base"
-                  onClick={() => {
-                    // Aqui você implementaria a lógica para baixar a petição
-                    toast.success("Petição baixada com sucesso!");
-                  }}
+                <motion.div 
+                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                  className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10 flex-1 min-w-[200px]"
                 >
-                  <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                  Baixar petição
-                </motion.button>
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
+                    <Percent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">{t('result.stats.probability.title')}</h3>
+                  <p className="text-2xl sm:text-3xl font-bold text-white">{t('result.stats.probability.value', { value: resultado.probabilidadeVitoria })}</p>
+                </motion.div>
+                
+                <motion.div 
+                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
+                  className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10 flex-1 min-w-[200px]"
+                >
+                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
+                    <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
+                  </div>
+                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">{t('result.stats.value.title')}</h3>
+                  <p className="text-2xl sm:text-3xl font-bold text-white">{t('result.stats.value.value', { value: resultado.valorEstimado.toFixed(2) })}</p>
+                </motion.div>
+              </motion.div>
+              
+              {/* Layout horizontal para telas maiores */}
+              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
+                {/* Seção principal - Petição */}
+                <motion.div 
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.7, duration: 0.5 }}
+                  className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10 lg:w-2/3"
+                >
+                  <div className="flex justify-between items-center mb-3 sm:mb-4">
+                    <h3 className="text-base sm:text-lg font-semibold text-white flex items-center">
+                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-white" />
+                      {t('result.petition.title')}
+                    </h3>
+                    <motion.button
+                      whileHover={{ scale: 1.05 }}
+                      whileTap={{ scale: 0.95 }}
+                      className="bg-white text-dark-950 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base"
+                      onClick={() => {
+                        // Aqui você implementaria a lógica para baixar a petição
+                        toast.success("Petição baixada com sucesso!");
+                      }}
+                    >
+                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                      {t('result.petition.download')}
+                    </motion.button>
+                  </div>
+                  
+                  <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
+                    <pre className="text-xs sm:text-sm text-white/80 whitespace-pre-wrap">{resultado.peticao}</pre>
+                  </div>
+                </motion.div>
+                
+                {/* Seção de informações adicionais */}
+                <div className="lg:w-1/3 flex flex-col gap-4 sm:gap-6">
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.4, duration: 0.5 }}
+                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
+                  >
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center">
+                      <Info className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-white" />
+                      {t('result.instructions.title')}
+                    </h3>
+                    <ul className="space-y-2 text-white/80">
+                      {resultado.instrucoes.split('\n').map((instrucao, index) => (
+                        <motion.li 
+                          key={index} 
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
+                          className="flex items-start text-sm sm:text-base"
+                        >
+                          <span className="text-white mr-2">•</span>
+                          {instrucao}
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </motion.div>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.5, duration: 0.5 }}
+                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
+                  >
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{t('result.summary.title')}</h3>
+                    <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
+                      <p className="text-sm sm:text-base text-white/80">{resultado.resumo}</p>
+                    </div>
+                  </motion.div>
+                  
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.6, duration: 0.5 }}
+                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
+                  >
+                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{t('result.regulations.title')}</h3>
+                    <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
+                      <p className="text-sm sm:text-base text-white/80">{resultado.regulacoes}</p>
+                    </div>
+                  </motion.div>
+                </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         );
       default:
@@ -675,8 +745,19 @@ export default function Home() {
     }
   };
 
+  // Adicionar os estilos ao documento
+  useEffect(() => {
+    const styleElement = document.createElement('style');
+    styleElement.innerHTML = customStyles;
+    document.head.appendChild(styleElement);
+    
+    return () => {
+      document.head.removeChild(styleElement);
+    };
+  }, []);
+
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-dark-950">
+    <div className="flex flex-col items-center justify-center min-h-screen bg-dark-950 overflow-hidden">
       <Toaster
         position="top-center"
         reverseOrder={false}
@@ -687,7 +768,7 @@ export default function Home() {
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
-        className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 flex justify-between items-center"
+        className="w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 flex justify-between items-center"
       >
         <div className="flex items-center space-x-2 sm:space-x-3">
           <motion.div 
@@ -700,20 +781,48 @@ export default function Home() {
           <h1 className="text-xl sm:text-2xl font-bold text-white">Jurito</h1>
         </div>
         
-        <div className="flex items-center space-x-1 sm:space-x-2">
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"></div>
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/50"></div>
-          <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/30"></div>
+        <div className="flex items-center space-x-2 sm:space-x-4">
+          {step > 0 && (
+            <motion.button
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={handleVoltarAoInicio}
+              className="text-white/70 hover:text-white text-sm sm:text-base flex items-center"
+            >
+              <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 rotate-180" />
+              {t('backToStart')}
+            </motion.button>
+          )}
+          
+          <div className="flex items-center space-x-2">
+            <Globe className="h-4 w-4 text-white/70" />
+            <select 
+              onChange={changeLanguage} 
+              value={locale} 
+              className="bg-dark-900/80 border border-white/10 rounded-lg text-white p-1 text-sm focus:border-white/20 focus:ring-white/10"
+            >
+              <option value="pt">Português</option>
+              <option value="en">English</option>
+            </select>
+          </div>
+          
+          <div className="flex items-center space-x-1 sm:space-x-2">
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/50"></div>
+            <div className="w-1.5 h-1.5 sm:w-2 sm:h-2 rounded-full bg-white/30"></div>
+          </div>
         </div>
       </motion.header>
       
-      <main className="flex-1 w-full max-w-5xl mx-auto px-4 py-6 sm:py-8 flex flex-col items-center justify-center">
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-8 flex flex-col items-center justify-center">
         {step > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full flex justify-center mb-6 sm:mb-8 overflow-x-auto"
+            className="w-full flex justify-center mb-6 sm:mb-8"
           >
             <div className="flex items-center space-x-2 sm:space-x-4">
               <motion.div 
@@ -727,7 +836,7 @@ export default function Home() {
                 >
                   1
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">Dados pessoais</span>
+                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.personal')}</span>
               </motion.div>
               <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
               <motion.div 
@@ -741,7 +850,7 @@ export default function Home() {
                 >
                   2
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">Detalhes do voo</span>
+                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.flight')}</span>
               </motion.div>
               <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
               <motion.div 
@@ -755,7 +864,7 @@ export default function Home() {
                 >
                   3
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">Descrição</span>
+                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.description')}</span>
               </motion.div>
               <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
               <motion.div 
@@ -769,34 +878,36 @@ export default function Home() {
                 >
                   4
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">Resultado</span>
+                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.result')}</span>
               </motion.div>
             </div>
           </motion.div>
         )}
         
-        {loading ? (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex flex-col items-center justify-center py-8 sm:py-12"
-          >
-            <LoadingDots color="#ffffff" style="large" />
-            <motion.p 
+        <div className={`w-full ${step === 4 ? 'h-auto min-h-[500px]' : 'h-[500px]'} flex items-center justify-center`}>
+          {loading ? (
+            <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
-              transition={{ delay: 0.5 }}
-              className="mt-3 sm:mt-4 text-white/60 text-sm sm:text-base"
+              exit={{ opacity: 0 }}
+              className="flex flex-col items-center justify-center"
             >
-              Gerando sua petição...
-            </motion.p>
-          </motion.div>
-        ) : (
-          <AnimatePresence initial={false} custom={direction}>
-            {renderStep()}
-          </AnimatePresence>
-        )}
+              <LoadingDots color="#ffffff" style="large" />
+              <motion.p 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.5 }}
+                className="mt-3 sm:mt-4 text-white/60 text-sm sm:text-base"
+              >
+                {t('loading')}
+              </motion.p>
+            </motion.div>
+          ) : (
+            <AnimatePresence initial={false} custom={direction} mode="wait">
+              {renderStep()}
+            </AnimatePresence>
+          )}
+        </div>
         
         {step > 0 && (
           <motion.div 
@@ -812,7 +923,7 @@ export default function Home() {
                 onClick={handleBackStep}
                 className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/10 text-white hover:bg-white/5 transition-colors text-sm sm:text-base"
               >
-                Voltar
+                {t('form.buttons.back')}
               </motion.button>
             )}
             
@@ -823,7 +934,7 @@ export default function Home() {
                 onClick={handleNextStep}
                 className="ml-auto bg-white text-dark-950 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base"
               >
-                {step === 3 ? "Gerar petição" : "Próximo"}
+                {step === 3 ? t('form.buttons.generate') : t('form.buttons.next')}
                 <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
               </motion.button>
             )}
@@ -835,9 +946,9 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.5 }}
-        className="w-full max-w-5xl mx-auto px-4 py-4 sm:py-6 text-center text-white/40 text-xs sm:text-sm"
+        className="w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 text-center text-white/40 text-xs sm:text-sm"
       >
-        <p>© 2023 Jurito - Assistente jurídico para problemas com voos</p>
+        <p>{t('footer')}</p>
       </motion.footer>
     </div>
   );

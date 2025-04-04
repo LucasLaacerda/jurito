@@ -1,0 +1,88 @@
+{
+  "welcome": {
+    "title": "Jurito: Your Air Rights",
+    "subtitle": "Recover your money quickly and safely",
+    "features": {
+      "legal": {
+        "title": "Legal Protection",
+        "description": "Petitions based on the latest airline regulations"
+      },
+      "fast": {
+        "title": "Fast and Efficient",
+        "description": "Generate ready-to-submit documents in minutes"
+      },
+      "probability": {
+        "title": "High Probability",
+        "description": "Accurate assessment of your case viability and estimated value"
+      }
+    },
+    "cta": "Start now"
+  },
+  "steps": {
+    "personal": "Personal data",
+    "flight": "Flight details",
+    "description": "Description",
+    "result": "Result"
+  },
+  "form": {
+    "personal": {
+      "title": "Your personal data",
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone"
+    },
+    "flight": {
+      "title": "Flight details",
+      "type": "Problem type",
+      "number": "Flight number",
+      "date": "Flight date",
+      "airline": "Airline",
+      "options": {
+        "voo_atrasado": "Delayed Flight",
+        "voo_cancelado": "Cancelled Flight",
+        "bagagem_extraviada": "Lost Baggage",
+        "overbooking": "Overbooking",
+        "outro": "Other"
+      }
+    },
+    "description": {
+      "title": "Problem description",
+      "description": "Describe what happened",
+      "value": "Ticket value ($)"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "generate": "Generate petition"
+    }
+  },
+  "result": {
+    "title": "Your petition is ready!",
+    "stats": {
+      "probability": {
+        "title": "Probability of success",
+        "value": "{{value}}%"
+      },
+      "value": {
+        "title": "Estimated value",
+        "value": "$ {{value}}"
+      }
+    },
+    "petition": {
+      "title": "Generated petition",
+      "download": "Download petition"
+    },
+    "instructions": {
+      "title": "Submission instructions"
+    },
+    "summary": {
+      "title": "Case summary"
+    },
+    "regulations": {
+      "title": "Applicable regulations"
+    }
+  },
+  "loading": "Generating your petition...",
+  "backToStart": "Back to start",
+  "footer": "© 2025 Jurito - Legal assistant for flight issues"
+} 

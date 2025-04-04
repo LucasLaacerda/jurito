@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { ChevronDown } from 'lucide-react';
+import { useTranslation } from 'next-i18next';
 
 export type CasoType = "Voo Atrasado" | "Voo Cancelado" | "Bagagem Extraviada" | "Overbooking" | "Outro";
 
@@ -10,6 +11,7 @@ interface DropDownProps {
 
 const DropDown = ({ caso, setCaso }: DropDownProps) => {
   const [isOpen, setIsOpen] = useState(false);
+  const { t } = useTranslation('common');
 
   const opcoes: CasoType[] = [
     "Voo Atrasado",
@@ -19,6 +21,30 @@ const DropDown = ({ caso, setCaso }: DropDownProps) => {
     "Outro"
   ];
 
+  // Função para converter o tipo de caso para a chave de tradução
+  const getTranslationKey = (tipo: string) => {
+    switch (tipo) {
+      case "Voo Atrasado":
+        return "voo_atrasado";
+      case "Voo Cancelado":
+        return "voo_cancelado";
+      case "Bagagem Extraviada":
+        return "bagagem_extraviada";
+      case "Overbooking":
+        return "overbooking";
+      case "Outro":
+        return "outro";
+      default:
+        return tipo.toLowerCase().replace(' ', '_');
+    }
+  };
+
+  // Função para obter o texto traduzido
+  const getTranslatedText = (tipo: string) => {
+    const key = getTranslationKey(tipo);
+    return t(`form.flight.options.${key}`);
+  };
+
   return (
     <div className="relative">
       <button
@@ -26,7 +52,7 @@ const DropDown = ({ caso, setCaso }: DropDownProps) => {
         className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-3 focus:border-white/20 focus:ring-white/10 flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{caso}</span>
+        <span>{getTranslatedText(caso)}</span>
         <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
       </button>
       
@@ -44,7 +70,7 @@ const DropDown = ({ caso, setCaso }: DropDownProps) => {
                 setIsOpen(false);
               }}
             >
-              {opcao}
+              {getTranslatedText(opcao)}
             </button>
           ))}
         </div>

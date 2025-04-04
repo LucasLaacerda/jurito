@@ -1,0 +1,88 @@
+{
+  "welcome": {
+    "title": "Jurito: Seus direitos aéreos",
+    "subtitle": "Recupere seu dinheiro com rapidez e segurança",
+    "features": {
+      "legal": {
+        "title": "Proteção Legal",
+        "description": "Petições baseadas nas regulamentações mais recentes do setor aéreo"
+      },
+      "fast": {
+        "title": "Rápido e Eficiente",
+        "description": "Gere documentos prontos para apresentação em questão de minutos"
+      },
+      "probability": {
+        "title": "Alta Probabilidade",
+        "description": "Avaliação precisa da viabilidade do seu caso e valor estimado"
+      }
+    },
+    "cta": "Começar agora"
+  },
+  "steps": {
+    "personal": "Dados pessoais",
+    "flight": "Detalhes do voo",
+    "description": "Descrição",
+    "result": "Resultado"
+  },
+  "form": {
+    "personal": {
+      "title": "Seus dados pessoais",
+      "name": "Nome completo",
+      "email": "E-mail",
+      "phone": "Telefone"
+    },
+    "flight": {
+      "title": "Detalhes do voo",
+      "type": "Tipo de problema",
+      "number": "Número do voo",
+      "date": "Data do voo",
+      "airline": "Companhia aérea",
+      "options": {
+        "voo_atrasado": "Voo Atrasado",
+        "voo_cancelado": "Voo Cancelado",
+        "bagagem_extraviada": "Bagagem Extraviada",
+        "overbooking": "Overbooking",
+        "outro": "Outro"
+      }
+    },
+    "description": {
+      "title": "Descrição do problema",
+      "description": "Descreva o que aconteceu",
+      "value": "Valor da passagem (R$)"
+    },
+    "buttons": {
+      "back": "Voltar",
+      "next": "Próximo",
+      "generate": "Gerar petição"
+    }
+  },
+  "result": {
+    "title": "Sua petição está pronta!",
+    "stats": {
+      "probability": {
+        "title": "Probabilidade de sucesso",
+        "value": "{{value}}%"
+      },
+      "value": {
+        "title": "Valor estimado",
+        "value": "R$ {{value}}"
+      }
+    },
+    "petition": {
+      "title": "Petição gerada",
+      "download": "Baixar petição"
+    },
+    "instructions": {
+      "title": "Instruções de envio"
+    },
+    "summary": {
+      "title": "Resumo do caso"
+    },
+    "regulations": {
+      "title": "Regulamentações aplicáveis"
+    }
+  },
+  "loading": "Gerando sua petição...",
+  "backToStart": "Voltar ao início",
+  "footer": "© 2025 Jurito - Assistente jurídico para problemas com voos"
+} 
