@@ -822,64 +822,72 @@ export default function Home() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full flex justify-center mb-6 sm:mb-8"
+            className="w-full flex justify-center mb-6 sm:mb-8 px-4"
           >
-            <div className="flex items-center space-x-2 sm:space-x-4">
-              <motion.div 
-                className={`flex items-center ${step >= 1 ? 'text-white' : 'text-white/30'}`}
-                whileHover={{ scale: 1.05 }}
-              >
+            <div className="flex items-center justify-center w-full max-w-md">
+              <div className="flex items-center justify-between w-full">
                 <motion.div 
-                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                  animate={{ scale: step >= 1 ? [1, 1.2, 1] : 1 }}
-                  transition={{ duration: 0.3 }}
+                  className={`flex flex-col items-center ${step >= 1 ? 'text-white' : 'text-white/30'}`}
+                  whileHover={{ scale: 1.05 }}
                 >
-                  1
+                  <motion.div 
+                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    animate={{ scale: step >= 1 ? [1, 1.2, 1] : 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    1
+                  </motion.div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.personal')}</span>
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.personal')}</span>
-              </motion.div>
-              <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
-              <motion.div 
-                className={`flex items-center ${step >= 2 ? 'text-white' : 'text-white/30'}`}
-                whileHover={{ scale: 1.05 }}
-              >
+                
+                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
+                
                 <motion.div 
-                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                  animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1 }}
-                  transition={{ duration: 0.3 }}
+                  className={`flex flex-col items-center ${step >= 2 ? 'text-white' : 'text-white/30'}`}
+                  whileHover={{ scale: 1.05 }}
                 >
-                  2
+                  <motion.div 
+                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    2
+                  </motion.div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.flight')}</span>
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.flight')}</span>
-              </motion.div>
-              <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
-              <motion.div 
-                className={`flex items-center ${step >= 3 ? 'text-white' : 'text-white/30'}`}
-                whileHover={{ scale: 1.05 }}
-              >
+                
+                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
+                
                 <motion.div 
-                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                  animate={{ scale: step >= 3 ? [1, 1.2, 1] : 1 }}
-                  transition={{ duration: 0.3 }}
+                  className={`flex flex-col items-center ${step >= 3 ? 'text-white' : 'text-white/30'}`}
+                  whileHover={{ scale: 1.05 }}
                 >
-                  3
+                  <motion.div 
+                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    animate={{ scale: step >= 3 ? [1, 1.2, 1] : 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    3
+                  </motion.div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.description')}</span>
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.description')}</span>
-              </motion.div>
-              <div className="w-8 sm:w-12 h-0.5 bg-white/10"></div>
-              <motion.div 
-                className={`flex items-center ${step >= 4 ? 'text-white' : 'text-white/30'}`}
-                whileHover={{ scale: 1.05 }}
-              >
+                
+                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
+                
                 <motion.div 
-                  className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                  animate={{ scale: step >= 4 ? [1, 1.2, 1] : 1 }}
-                  transition={{ duration: 0.3 }}
+                  className={`flex flex-col items-center ${step >= 4 ? 'text-white' : 'text-white/30'}`}
+                  whileHover={{ scale: 1.05 }}
                 >
-                  4
+                  <motion.div 
+                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    animate={{ scale: step >= 4 ? [1, 1.2, 1] : 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    4
+                  </motion.div>
+                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.result')}</span>
                 </motion.div>
-                <span className="ml-1 sm:ml-2 text-xs sm:text-sm font-medium">{t('steps.result')}</span>
-              </motion.div>
+              </div>
             </div>
           </motion.div>
         )}
