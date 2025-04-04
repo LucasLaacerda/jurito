@@ -5,7 +5,7 @@ interface LoadingDotsProps {
   style?: "small" | "large";
 }
 
-export default function LoadingDots({ color = "#fff", style = "small" }: LoadingDotsProps) {
+export default function LoadingDots({ color = "#ffffff", style = "small" }: LoadingDotsProps) {
   return (
     <span className={style === "small" ? styles.loading : styles.loading2}>
       <span style={{ backgroundColor: color }} />
@@ -16,6 +16,6 @@ export default function LoadingDots({ color = "#fff", style = "small" }: Loading
 }
 
 LoadingDots.defaultProps = {
-  color: "#fff",
+  color: "#ffffff",
   style: "small",
 }; 
