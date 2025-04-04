@@ -57,12 +57,24 @@
     }
   },
   "result": {
-    "title": "Your petition is ready!",
+    "title": "Case Analysis",
+    "compensation": "You may receive up to",
+    "probability": {
+      "title": "Success probability",
+      "chance": "chance of success"
+    },
+    "instructions": {
+      "title": "Next steps",
+      "text": "Based on the analysis of your case, we recommend filing a formal complaint. Our legal team can help you prepare all necessary documents and represent your interests with the airline.",
+      "button": "File complaint"
+    },
+    "summary": {
+      "title": "Case summary",
+      "personal": "Personal information",
+      "flight": "Flight details",
+      "description": "Problem description"
+    },
     "stats": {
-      "probability": {
-        "title": "Probability of success",
-        "value": "{{value}}%"
-      },
       "value": {
         "title": "Estimated value",
         "value": "$ {{value}}"
@@ -71,12 +83,6 @@
     "petition": {
       "title": "Generated petition",
       "download": "Download petition"
-    },
-    "instructions": {
-      "title": "Submission instructions"
-    },
-    "summary": {
-      "title": "Case summary"
     },
     "regulations": {
       "title": "Applicable regulations"

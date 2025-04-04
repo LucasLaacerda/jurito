@@ -276,6 +276,30 @@ export default function Home() {
     router.push(router.pathname, router.asPath, { locale });
   };
 
+  // Função para converter o tipo de caso para a chave de tradução
+  const getTranslationKey = (tipo: string) => {
+    switch (tipo) {
+      case "Voo Atrasado":
+        return "voo_atrasado";
+      case "Voo Cancelado":
+        return "voo_cancelado";
+      case "Bagagem Extraviada":
+        return "bagagem_extraviada";
+      case "Overbooking":
+        return "overbooking";
+      case "Outro":
+        return "outro";
+      default:
+        return tipo.toLowerCase().replace(' ', '_');
+    }
+  };
+
+  // Função para obter o texto traduzido
+  const getTranslatedText = (tipo: string) => {
+    const key = getTranslationKey(tipo);
+    return t(`form.flight.options.${key}`);
+  };
+
   const renderStep = () => {
     // Usar variantes diferentes para mobile e desktop
     const variants = isMobile ? mobilePageVariants : pageVariants;
@@ -378,10 +402,10 @@ export default function Home() {
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={handleNextStep}
-              className="bg-white text-dark-950 px-6 sm:px-8 py-2 sm:py-3 rounded-lg hover:bg-white/90 transition-colors flex items-center mx-auto text-base sm:text-lg font-medium"
+              className="bg-white text-dark-950 px-8 py-4 rounded-xl hover:bg-white/90 transition-colors flex items-center mx-auto text-lg font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all"
             >
               {t('welcome.cta')}
-              <ArrowRight className="h-4 w-4 sm:h-5 sm:w-5 ml-2" />
+              <ArrowRight className="h-5 w-5 ml-2" />
             </motion.button>
           </motion.div>
         );
@@ -621,121 +645,123 @@ export default function Home() {
             </motion.h2>
             
             <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
-              {/* Seção de estatísticas */}
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.3, duration: 0.5 }}
-                className="flex flex-wrap gap-3 sm:gap-4 mb-4 sm:mb-6"
-              >
-                <motion.div 
-                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
-                  className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10 flex-1 min-w-[200px]"
-                >
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
-                    <Percent className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">{t('result.stats.probability.title')}</h3>
-                  <p className="text-2xl sm:text-3xl font-bold text-white">{t('result.stats.probability.value', { value: resultado.probabilidadeVitoria })}</p>
-                </motion.div>
-                
-                <motion.div 
-                  whileHover={{ scale: 1.05, transition: { duration: 0.2 } }}
-                  className="bg-dark-900/80 rounded-xl p-3 sm:p-4 border border-white/10 flex-1 min-w-[200px]"
-                >
-                  <div className="flex items-center justify-center w-10 h-10 sm:w-12 sm:h-12 bg-white/10 rounded-lg mb-2 sm:mb-3">
-                    <DollarSign className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
-                  </div>
-                  <h3 className="text-base sm:text-lg font-semibold text-white mb-1">{t('result.stats.value.title')}</h3>
-                  <p className="text-2xl sm:text-3xl font-bold text-white">{t('result.stats.value.value', { value: resultado.valorEstimado.toFixed(2) })}</p>
-                </motion.div>
-              </motion.div>
-              
-              {/* Layout horizontal para telas maiores */}
-              <div className="flex flex-col lg:flex-row gap-4 sm:gap-6">
-                {/* Seção principal - Petição */}
-                <motion.div 
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ delay: 0.7, duration: 0.5 }}
-                  className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10 lg:w-2/3"
-                >
-                  <div className="flex justify-between items-center mb-3 sm:mb-4">
-                    <h3 className="text-base sm:text-lg font-semibold text-white flex items-center">
-                      <FileText className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-white" />
-                      {t('result.petition.title')}
-                    </h3>
-                    <motion.button
-                      whileHover={{ scale: 1.05 }}
-                      whileTap={{ scale: 0.95 }}
-                      className="bg-white text-dark-950 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base"
-                      onClick={() => {
-                        // Aqui você implementaria a lógica para baixar a petição
-                        toast.success("Petição baixada com sucesso!");
-                      }}
-                    >
-                      <FileText className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
-                      {t('result.petition.download')}
-                    </motion.button>
-                  </div>
-                  
-                  <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
-                    <pre className="text-xs sm:text-sm text-white/80 whitespace-pre-wrap">{resultado.peticao}</pre>
-                  </div>
-                </motion.div>
-                
-                {/* Seção de informações adicionais */}
-                <div className="lg:w-1/3 flex flex-col gap-4 sm:gap-6">
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.4, duration: 0.5 }}
-                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
-                  >
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4 flex items-center">
-                      <Info className="h-4 w-4 sm:h-5 sm:w-5 mr-2 text-white" />
-                      {t('result.instructions.title')}
-                    </h3>
-                    <ul className="space-y-2 text-white/80">
-                      {resultado.instrucoes.split('\n').map((instrucao, index) => (
-                        <motion.li 
-                          key={index} 
-                          initial={{ opacity: 0, x: -20 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.5 + index * 0.1, duration: 0.5 }}
-                          className="flex items-start text-sm sm:text-base"
-                        >
-                          <span className="text-white mr-2">•</span>
-                          {instrucao}
-                        </motion.li>
-                      ))}
-                    </ul>
-                  </motion.div>
-                  
-                  <motion.div 
-                    initial={{ opacity: 0, x: 20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.5, duration: 0.5 }}
-                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
-                  >
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{t('result.summary.title')}</h3>
-                    <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
-                      <p className="text-sm sm:text-base text-white/80">{resultado.resumo}</p>
-                    </div>
-                  </motion.div>
-                  
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* Coluna principal com resultado */}
+                <div className="lg:col-span-2 space-y-6">
                   <motion.div 
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: 0.6, duration: 0.5 }}
-                    className="bg-dark-900/80 rounded-xl p-4 sm:p-6 border border-white/10"
+                    transition={{ delay: 0.2 }}
+                    className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 sm:p-8 border border-white/10"
                   >
-                    <h3 className="text-base sm:text-lg font-semibold text-white mb-3 sm:mb-4">{t('result.regulations.title')}</h3>
-                    <div className="bg-dark-950/50 rounded-lg p-3 sm:p-4">
-                      <p className="text-sm sm:text-base text-white/80">{resultado.regulacoes}</p>
+                    <h2 className="text-2xl sm:text-3xl font-bold text-white mb-6">{t('result.title')}</h2>
+                    
+                    {/* Destaque para o valor da compensação */}
+                    <div className="mb-8 p-6 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl border border-emerald-500/30">
+                      <p className="text-white/80 text-sm mb-2">{t('result.compensation')}</p>
+                      <p className="text-4xl sm:text-5xl font-bold text-white">
+                        R$ {Number(formData.valorCompensacao).toFixed(2).replace('.', ',')}
+                      </p>
+                    </div>
+                    
+                    {/* Probabilidade com cor */}
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-white mb-4">{t('result.probability.title')}</h3>
+                      <div className={`inline-flex items-center px-4 py-2 rounded-full ${
+                        resultado.probabilidadeVitoria >= 70 ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30' :
+                        resultado.probabilidadeVitoria >= 50 ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30' :
+                        'bg-red-500/20 text-red-300 border border-red-500/30'
+                      }`}>
+                        <span className="text-lg font-medium">{resultado.probabilidadeVitoria}%</span>
+                        <span className="ml-2 text-sm">{t('result.probability.chance')}</span>
+                      </div>
+                    </div>
+                    
+                    {/* Instruções */}
+                    <div className="mb-8">
+                      <h3 className="text-xl font-semibold text-white mb-4">{t('result.instructions.title')}</h3>
+                      <div className="prose prose-invert max-w-none">
+                        <p className="text-white/80">{resultado.instrucoes}</p>
+                      </div>
+                    </div>
+                    
+                    {/* Petição */}
+                    <div>
+                      <div className="flex justify-between items-center mb-4">
+                        <h3 className="text-xl font-semibold text-white flex items-center">
+                          <FileText className="h-5 w-5 mr-2 text-white" />
+                          {t('result.petition.title')}
+                        </h3>
+                        <motion.button
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="bg-white text-dark-950 px-4 py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center"
+                          onClick={() => {
+                            // Aqui você implementaria a lógica para baixar a petição
+                            toast.success("Petição baixada com sucesso!");
+                          }}
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          {t('result.petition.download')}
+                        </motion.button>
+                      </div>
+                      <div className="bg-dark-950/50 rounded-lg p-4 max-h-60 overflow-y-auto custom-scrollbar">
+                        <pre className="text-sm text-white/80 whitespace-pre-wrap">{resultado.peticao}</pre>
+                      </div>
                     </div>
                   </motion.div>
                 </div>
+                
+                {/* Coluna lateral com resumo do caso */}
+                <motion.div
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.3 }}
+                  className="bg-white/5 backdrop-blur-lg rounded-2xl p-6 border border-white/10 h-fit"
+                >
+                  <h3 className="text-xl font-semibold text-white mb-4">{t('result.summary.title')}</h3>
+                  
+                  <div className="space-y-4">
+                    {/* Dados pessoais */}
+                    <div>
+                      <h4 className="text-sm font-medium text-white/60 mb-2">{t('result.summary.personal')}</h4>
+                      <p className="text-white">{formData.nome}</p>
+                      <p className="text-white/80 text-sm">{formData.email}</p>
+                      <p className="text-white/80 text-sm">{formData.telefone}</p>
+                    </div>
+                    
+                    {/* Dados do voo */}
+                    <div>
+                      <h4 className="text-sm font-medium text-white/60 mb-2">{t('result.summary.flight')}</h4>
+                      <p className="text-white">{getTranslatedText(formData.tipoCaso)}</p>
+                      <p className="text-white/80 text-sm">{t('form.flight.number')}: {formData.numeroVoo}</p>
+                      <p className="text-white/80 text-sm">{t('form.flight.date')}: {formData.dataVoo}</p>
+                      <p className="text-white/80 text-sm">{t('form.flight.airline')}: {formData.companhiaAerea}</p>
+                    </div>
+                    
+                    {/* Descrição */}
+                    <div>
+                      <h4 className="text-sm font-medium text-white/60 mb-2">{t('result.summary.description')}</h4>
+                      <p className="text-white/80 text-sm">{formData.descricao}</p>
+                    </div>
+                  </div>
+                  
+                  {/* Botão de ação direta */}
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.4 }}
+                    className="flex justify-center mt-6"
+                  >
+                    <button
+                      onClick={handleVoltarAoInicio}
+                      className="w-full px-6 py-3 bg-white text-dark-950 rounded-xl font-medium text-base hover:bg-white/90 transition-colors shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all flex items-center justify-center"
+                    >
+                      <FileText className="h-5 w-5 mr-2" />
+                      {t('result.instructions.button')}
+                    </button>
+                  </motion.div>
+                </motion.div>
               </div>
             </div>
           </motion.div>
@@ -822,7 +848,7 @@ export default function Home() {
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full flex justify-center mb-6 sm:mb-8 px-4"
+            className="w-full flex justify-center mb-6 sm:mb-8 px-4 sticky top-0 z-10 bg-dark-950/80 backdrop-blur-sm py-2"
           >
             <div className="flex items-center justify-center w-full max-w-md">
               <div className="flex items-center justify-between w-full">
@@ -831,13 +857,13 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <motion.div 
-                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
                     animate={{ scale: step >= 1 ? [1, 1.2, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    1
+                    <span className="text-sm font-medium">1</span>
                   </motion.div>
-                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.personal')}</span>
+                  <span className="mt-1 text-xs font-medium">{t('steps.personal')}</span>
                 </motion.div>
                 
                 <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
@@ -847,13 +873,13 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <motion.div 
-                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
                     animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    2
+                    <span className="text-sm font-medium">2</span>
                   </motion.div>
-                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.flight')}</span>
+                  <span className="mt-1 text-xs font-medium">{t('steps.flight')}</span>
                 </motion.div>
                 
                 <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
@@ -863,13 +889,13 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <motion.div 
-                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
                     animate={{ scale: step >= 3 ? [1, 1.2, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    3
+                    <span className="text-sm font-medium">3</span>
                   </motion.div>
-                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.description')}</span>
+                  <span className="mt-1 text-xs font-medium">{t('steps.description')}</span>
                 </motion.div>
                 
                 <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
@@ -879,13 +905,13 @@ export default function Home() {
                   whileHover={{ scale: 1.05 }}
                 >
                   <motion.div 
-                    className={`w-6 h-6 sm:w-8 sm:h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
+                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
                     animate={{ scale: step >= 4 ? [1, 1.2, 1] : 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    4
+                    <span className="text-sm font-medium">4</span>
                   </motion.div>
-                  <span className="mt-2 text-xs sm:text-sm font-medium">{t('steps.result')}</span>
+                  <span className="mt-1 text-xs font-medium">{t('steps.result')}</span>
                 </motion.div>
               </div>
             </div>

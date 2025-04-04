@@ -57,12 +57,24 @@
     }
   },
   "result": {
-    "title": "Sua petição está pronta!",
+    "title": "Análise do seu caso",
+    "compensation": "Você pode receber até",
+    "probability": {
+      "title": "Probabilidade de sucesso",
+      "chance": "de chance de sucesso"
+    },
+    "instructions": {
+      "title": "Próximos passos",
+      "text": "Com base na análise do seu caso, recomendamos entrar com uma reclamação formal. Nossa equipe jurídica pode ajudar você a preparar todos os documentos necessários e representar seus interesses junto à companhia aérea.",
+      "button": "Entrar com reclamação"
+    },
+    "summary": {
+      "title": "Resumo do caso",
+      "personal": "Dados pessoais",
+      "flight": "Detalhes do voo",
+      "description": "Descrição do problema"
+    },
     "stats": {
-      "probability": {
-        "title": "Probabilidade de sucesso",
-        "value": "{{value}}%"
-      },
       "value": {
         "title": "Valor estimado",
         "value": "R$ {{value}}"
@@ -71,12 +83,6 @@
     "petition": {
       "title": "Petição gerada",
       "download": "Baixar petição"
-    },
-    "instructions": {
-      "title": "Instruções de envio"
-    },
-    "summary": {
-      "title": "Resumo do caso"
     },
     "regulations": {
       "title": "Regulamentações aplicáveis"
