@@ -14,7 +14,7 @@ import Link from 'next/link';
 import api, { convertFormDataToVooData } from '../services/api';
 
 // URL base da API
-const API_URL = "https://web-production-192c4.up.railway.app";
+const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
 
 // Variantes de animação para as transições
 const pageVariants = {
