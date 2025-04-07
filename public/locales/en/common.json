@@ -1,0 +1,108 @@
+{
+  "welcome": {
+    "title": "Your Air Rights",
+    "subtitle": "Recover your money quickly and safely",
+    "features": {
+      "legal": {
+        "title": "Legal Protection",
+        "description": "Petitions based on the latest airline regulations"
+      },
+      "fast": {
+        "title": "Fast and Efficient",
+        "description": "Generate ready-to-submit documents in minutes"
+      },
+      "probability": {
+        "title": "High Probability",
+        "description": "Accurate assessment of your case viability and estimated value"
+      }
+    },
+    "cta": "Start now"
+  },
+  "steps": {
+    "personal": "Personal data",
+    "flight": "Flight details",
+    "description": "Description",
+    "result": "Result"
+  },
+  "form": {
+    "personal": {
+      "title": "Your personal data",
+      "name": "Full name",
+      "email": "Email",
+      "phone": "Phone",
+      "cpf": "CPF",
+      "city": "City/State"
+    },
+    "flight": {
+      "title": "Flight details",
+      "type": "Problem type",
+      "number": "Flight number",
+      "date": "Flight date",
+      "airline": "Airline",
+      "origin": "Origin",
+      "destination": "Destination",
+      "options": {
+        "voo_atrasado": "Delayed Flight",
+        "voo_cancelado": "Cancelled Flight",
+        "bagagem_extraviada": "Lost Baggage",
+        "overbooking": "Overbooking",
+        "outro": "Other"
+      }
+    },
+    "description": {
+      "title": "Problem description",
+      "description": "Describe what happened",
+      "value": "Ticket value ($)",
+      "offered": "What did the airline offer?",
+      "options": {
+        "refund": "Refund",
+        "reaccommodation": "Reaccommodation",
+        "voucher": "Voucher",
+        "none": "No offer"
+      },
+      "attachments": "Attachments and Evidence",
+      "clickToUpload": "Click to upload files",
+      "supportedFiles": "Supports PDF, JPG, PNG (max. 5MB)"
+    },
+    "buttons": {
+      "back": "Back",
+      "next": "Next",
+      "generate": "Generate petition"
+    }
+  },
+  "result": {
+    "title": "Case Analysis",
+    "compensation": "You may receive up to",
+    "probability": {
+      "title": "Success probability",
+      "chance": "chance of success"
+    },
+    "instructions": {
+      "title": "Next steps",
+      "text": "Based on the analysis of your case, we recommend filing a formal complaint. Our legal team can help you prepare all necessary documents and represent your interests with the airline.",
+      "button": "File complaint"
+    },
+    "summary": {
+      "title": "Case summary",
+      "personal": "Personal information",
+      "flight": "Flight details",
+      "description": "Problem description"
+    },
+    "stats": {
+      "value": {
+        "title": "Estimated value",
+        "value": "$ {{value}}"
+      }
+    },
+    "petition": {
+      "title": "Generated petition",
+      "download": "Download petition"
+    },
+    "regulations": {
+      "title": "Applicable regulations"
+    }
+  },
+  "loading": "Generating your petition...",
+  "backToStart": "Back to start",
+  "footer": "© 2025 Jurito - Legal assistant for flight issues"
+} 

@@ -1,0 +1,100 @@
+{
+  "welcome": {
+    "title": "Seus Direitos Aéreos",
+    "subtitle": "Recupere seu dinheiro de forma rápida e segura",
+    "cta": "Começar Agora",
+    "features": {
+      "legal": {
+        "title": "Assistência Jurídica",
+        "description": "Análise completa do seu caso com base na legislação aeronáutica"
+      },
+      "fast": {
+        "title": "Rápido e Eficiente",
+        "description": "Análise em minutos, sem burocracia ou demoras"
+      },
+      "probability": {
+        "title": "Alta Probabilidade",
+        "description": "Maior chance de sucesso na sua reclamação"
+      }
+    }
+  },
+  "steps": {
+    "personal": "Dados Pessoais",
+    "flight": "Dados do Voo",
+    "description": "Descrição do Caso",
+    "result": "Resultado"
+  },
+  "form": {
+    "personal": {
+      "title": "Dados Pessoais",
+      "name": "Nome Completo",
+      "email": "E-mail",
+      "phone": "Telefone",
+      "cpf": "CPF",
+      "city": "Cidade/Estado"
+    },
+    "flight": {
+      "title": "Dados do Voo",
+      "type": "Tipo de Caso",
+      "number": "Número do Voo",
+      "date": "Data do Voo",
+      "airline": "Companhia Aérea",
+      "origin": "Origem",
+      "destination": "Destino",
+      "options": {
+        "voo_atrasado": "Voo Atrasado",
+        "voo_cancelado": "Voo Cancelado",
+        "bagagem_extraviada": "Bagagem Extraviada",
+        "overbooking": "Overbooking",
+        "outro": "Outro"
+      }
+    },
+    "description": {
+      "title": "Descrição do Caso",
+      "description": "Descreva o que aconteceu",
+      "value": "Valor da Passagem",
+      "offered": "O que a companhia aérea ofereceu?",
+      "options": {
+        "refund": "Reembolso",
+        "reaccommodation": "Reacomodação",
+        "voucher": "Voucher",
+        "none": "Nenhuma oferta"
+      },
+      "attachments": "Anexos e Comprovantes",
+      "clickToUpload": "Clique para anexar arquivos",
+      "supportedFiles": "Suporta PDF, JPG, PNG (máx. 5MB)"
+    },
+    "buttons": {
+      "back": "Voltar",
+      "next": "Próximo",
+      "generate": "Gerar Análise"
+    }
+  },
+  "result": {
+    "title": "Análise do Seu Caso",
+    "compensation": "Valor Estimado de Compensação",
+    "probability": {
+      "title": "Probabilidade de Sucesso",
+      "chance": "de chance de vitória"
+    },
+    "instructions": {
+      "title": "Próximos Passos",
+      "button": "Apresentar Queixa"
+    },
+    "petition": {
+      "title": "Petição Inicial",
+      "download": "Baixar Petição"
+    },
+    "summary": {
+      "title": "Resumo do Caso",
+      "personal": "Dados Pessoais",
+      "flight": "Dados do Voo",
+      "description": "Descrição"
+    }
+  },
+  "loading": "Gerando sua petição...",
+  "backToStart": "Voltar ao Início",
+  "footer": "© 2023 Jurito. Todos os direitos reservados.",
+  "cancel": "Cancelar",
+  "processCancelled": "Processamento cancelado"
+} 

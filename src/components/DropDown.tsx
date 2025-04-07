@@ -1,84 +1,78 @@
-import { Fragment } from "react";
-import { Listbox, Transition } from "@headlessui/react";
-import { ChevronDown } from "lucide-react";
+import React, { useState, useRef, useEffect } from 'react';
 
-export type CasoType = "Voo Atrasado" | "Voo Cancelado" | "Bagagem Extraviada" | "Overbooking" | "Outro";
+export type CasoType = 'Voo Atrasado' | 'Voo Cancelado' | 'Bagagem Extraviada' | 'Overbooking' | 'Outro';
 
 interface DropDownProps {
   caso: CasoType;
   setCaso: (caso: CasoType) => void;
 }
 
-const casos: CasoType[] = [
-  "Voo Atrasado",
-  "Voo Cancelado",
-  "Bagagem Extraviada",
-  "Overbooking",
-  "Outro",
-];
+const DropDown: React.FC<DropDownProps> = ({ caso, setCaso }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-export default function DropDown({ caso, setCaso }: DropDownProps) {
+  const options: CasoType[] = [
+    'Voo Atrasado',
+    'Voo Cancelado',
+    'Bagagem Extraviada',
+    'Overbooking',
+    'Outro'
+  ];
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
   return (
-    <Listbox value={caso} onChange={setCaso}>
-      <div className="relative mt-1">
-        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-dark-800/50 py-2 pl-3 pr-10 text-left border border-white/10 focus:outline-none focus-visible:border-primary-500 focus-visible:ring-2 focus-visible:ring-primary-500 focus-visible:ring-opacity-75 focus-visible:ring-offset-2 focus-visible:ring-offset-dark-900 sm:text-sm">
-          <span className="block truncate text-white">{caso}</span>
-          <span className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2">
-            <ChevronDown
-              className="h-5 w-5 text-white/60"
-              aria-hidden="true"
-            />
-          </span>
-        </Listbox.Button>
-        <Transition
-          as={Fragment}
-          leave="transition ease-in duration-100"
-          leaveFrom="opacity-100"
-          leaveTo="opacity-0"
+    <div className="relative" ref={dropdownRef}>
+      <button
+        type="button"
+        className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10 flex justify-between items-center"
+        onClick={() => setIsOpen(!isOpen)}
+      >
+        <span>{caso}</span>
+        <svg
+          className={`h-5 w-5 text-white/60 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
         >
-          <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-dark-800 py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm z-10">
-            {casos.map((caso, casoIdx) => (
-              <Listbox.Option
-                key={casoIdx}
-                className={({ active }) =>
-                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                    active ? "bg-primary-500/20 text-white" : "text-white/90"
-                  }`
-                }
-                value={caso}
-              >
-                {({ selected }) => (
-                  <>
-                    <span
-                      className={`block truncate ${
-                        selected ? "font-medium" : "font-normal"
-                      }`}
-                    >
-                      {caso}
-                    </span>
-                    {selected ? (
-                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-primary-500">
-                        <svg
-                          className="h-5 w-5"
-                          viewBox="0 0 20 20"
-                          fill="currentColor"
-                          aria-hidden="true"
-                        >
-                          <path
-                            fillRule="evenodd"
-                            d="M16.704 4.153a.75.75 0 01.143 1.052l-8 10.5a.75.75 0 01-1.127.075l-4.5-4.5a.75.75 0 011.06-1.06l3.894 3.893 7.48-9.817a.75.75 0 011.05-.143z"
-                            clipRule="evenodd"
-                          />
-                        </svg>
-                      </span>
-                    ) : null}
-                  </>
-                )}
-              </Listbox.Option>
-            ))}
-          </Listbox.Options>
-        </Transition>
-      </div>
-    </Listbox>
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
+      </button>
+      {isOpen && (
+        <div className="absolute z-10 mt-1 w-full bg-dark-900/95 border border-white/10 rounded-lg shadow-lg overflow-hidden">
+          {options.map((option) => (
+            <button
+              key={option}
+              className={`w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 ${
+                caso === option ? 'bg-white/5' : ''
+              }`}
+              onClick={() => {
+                setCaso(option);
+                setIsOpen(false);
+              }}
+            >
+              {option}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
   );
-} 
+};
+
+export default DropDown; 

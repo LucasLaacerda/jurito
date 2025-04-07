@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useRouter } from 'next/router';
 
 type LayoutProps = {
   children: React.ReactNode;
@@ -9,6 +10,7 @@ type LayoutProps = {
 const Layout: React.FC<LayoutProps> = ({ children }) => {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const router = useRouter();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -23,22 +25,33 @@ const Layout: React.FC<LayoutProps> = ({ children }) => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogoClick = () => {
+    // Se estiver na página inicial, recarregar a página
+    if (router.pathname === '/') {
+      window.location.reload();
+    } else {
+      // Caso contrário, navegar para a página inicial
+      router.push('/');
+    }
+  };
+
   return (
     <div className="min-h-screen bg-dark-900">
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled ? 'bg-dark-800/80 backdrop-blur-lg shadow-lg' : 'bg-transparent'}`}>
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/" legacyBehavior>
-              <a className="flex items-center space-x-2">
-                <motion.div 
-                  className="text-2xl font-bold text-white"
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  <span className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">jurito</span>
-                </motion.div>
-              </a>
-            </Link>
+            <div 
+              className="flex items-center space-x-2 cursor-pointer"
+              onClick={handleLogoClick}
+            >
+              <motion.div 
+                className="text-2xl font-bold text-white"
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+              >
+                <span className="bg-gradient-to-r from-primary-500 to-secondary-500 bg-clip-text text-transparent">jurito</span>
+              </motion.div>
+            </div>
             
             {/* Desktop Navigation */}
             <nav className="hidden md:flex items-center space-x-6">
