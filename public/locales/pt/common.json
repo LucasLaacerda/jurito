@@ -1,42 +1,46 @@
 {
   "welcome": {
-    "title": "Jurito: Seus direitos aéreos",
-    "subtitle": "Recupere seu dinheiro com rapidez e segurança",
+    "title": "Seus Direitos Aéreos",
+    "subtitle": "Recupere seu dinheiro de forma rápida e segura",
+    "cta": "Começar Agora",
     "features": {
       "legal": {
-        "title": "Proteção Legal",
-        "description": "Petições baseadas nas regulamentações mais recentes do setor aéreo"
+        "title": "Assistência Jurídica",
+        "description": "Análise completa do seu caso com base na legislação aeronáutica"
       },
       "fast": {
         "title": "Rápido e Eficiente",
-        "description": "Gere documentos prontos para apresentação em questão de minutos"
+        "description": "Análise em minutos, sem burocracia ou demoras"
       },
       "probability": {
         "title": "Alta Probabilidade",
-        "description": "Avaliação precisa da viabilidade do seu caso e valor estimado"
+        "description": "Maior chance de sucesso na sua reclamação"
       }
-    },
-    "cta": "Começar agora"
+    }
   },
   "steps": {
-    "personal": "Dados pessoais",
-    "flight": "Detalhes do voo",
-    "description": "Descrição",
+    "personal": "Dados Pessoais",
+    "flight": "Dados do Voo",
+    "description": "Descrição do Caso",
     "result": "Resultado"
   },
   "form": {
     "personal": {
-      "title": "Seus dados pessoais",
-      "name": "Nome completo",
+      "title": "Dados Pessoais",
+      "name": "Nome Completo",
       "email": "E-mail",
-      "phone": "Telefone"
+      "phone": "Telefone",
+      "cpf": "CPF",
+      "city": "Cidade/Estado"
     },
     "flight": {
-      "title": "Detalhes do voo",
-      "type": "Tipo de problema",
-      "number": "Número do voo",
-      "date": "Data do voo",
-      "airline": "Companhia aérea",
+      "title": "Dados do Voo",
+      "type": "Tipo de Caso",
+      "number": "Número do Voo",
+      "date": "Data do Voo",
+      "airline": "Companhia Aérea",
+      "origin": "Origem",
+      "destination": "Destino",
       "options": {
         "voo_atrasado": "Voo Atrasado",
         "voo_cancelado": "Voo Cancelado",
@@ -46,49 +50,51 @@
       }
     },
     "description": {
-      "title": "Descrição do problema",
+      "title": "Descrição do Caso",
       "description": "Descreva o que aconteceu",
-      "value": "Valor da passagem (R$)"
+      "value": "Valor da Passagem",
+      "offered": "O que a companhia aérea ofereceu?",
+      "options": {
+        "refund": "Reembolso",
+        "reaccommodation": "Reacomodação",
+        "voucher": "Voucher",
+        "none": "Nenhuma oferta"
+      },
+      "attachments": "Anexos e Comprovantes",
+      "clickToUpload": "Clique para anexar arquivos",
+      "supportedFiles": "Suporta PDF, JPG, PNG (máx. 5MB)"
     },
     "buttons": {
       "back": "Voltar",
       "next": "Próximo",
-      "generate": "Gerar petição"
+      "generate": "Gerar Análise"
     }
   },
   "result": {
-    "title": "Análise do seu caso",
-    "compensation": "Você pode receber até",
+    "title": "Análise do Seu Caso",
+    "compensation": "Valor Estimado de Compensação",
     "probability": {
-      "title": "Probabilidade de sucesso",
-      "chance": "de chance de sucesso"
+      "title": "Probabilidade de Sucesso",
+      "chance": "de chance de vitória"
     },
     "instructions": {
-      "title": "Próximos passos",
-      "text": "Com base na análise do seu caso, recomendamos entrar com uma reclamação formal. Nossa equipe jurídica pode ajudar você a preparar todos os documentos necessários e representar seus interesses junto à companhia aérea.",
-      "button": "Entrar com reclamação"
-    },
-    "summary": {
-      "title": "Resumo do caso",
-      "personal": "Dados pessoais",
-      "flight": "Detalhes do voo",
-      "description": "Descrição do problema"
-    },
-    "stats": {
-      "value": {
-        "title": "Valor estimado",
-        "value": "R$ {{value}}"
-      }
+      "title": "Próximos Passos",
+      "button": "Apresentar Queixa"
     },
     "petition": {
-      "title": "Petição gerada",
-      "download": "Baixar petição"
+      "title": "Petição Inicial",
+      "download": "Baixar Petição"
     },
-    "regulations": {
-      "title": "Regulamentações aplicáveis"
+    "summary": {
+      "title": "Resumo do Caso",
+      "personal": "Dados Pessoais",
+      "flight": "Dados do Voo",
+      "description": "Descrição"
     }
   },
   "loading": "Gerando sua petição...",
-  "backToStart": "Voltar ao início",
-  "footer": "© 2025 Jurito - Assistente jurídico para problemas com voos"
+  "backToStart": "Voltar ao Início",
+  "footer": "© 2023 Jurito. Todos os direitos reservados.",
+  "cancel": "Cancelar",
+  "processCancelled": "Processamento cancelado"
 } 

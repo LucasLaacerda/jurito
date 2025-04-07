@@ -11,6 +11,7 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
+import api, { convertFormDataToVooData } from '../services/api';
 
 // URL base da API
 const API_URL = "https://web-production-192c4.up.railway.app";
@@ -103,6 +104,12 @@ export default function Home() {
     companhiaAerea: "",
     descricao: "",
     valorCompensacao: "",
+    origem: "",
+    destino: "",
+    cpf: "",
+    cidadeEstado: "",
+    oferecido: [] as string[],
+    anexos: [] as string[],
   });
   const [resultado, setResultado] = useState({
     peticao: "",
@@ -139,6 +146,32 @@ export default function Home() {
     setFormData((prev) => ({ ...prev, tipoCaso: tipo }));
   };
 
+  const handleOferecidoChange = (opcao: string) => {
+    setFormData((prev) => {
+      const oferecido = [...prev.oferecido];
+      if (oferecido.includes(opcao)) {
+        return { ...prev, oferecido: oferecido.filter(item => item !== opcao) };
+      } else {
+        return { ...prev, oferecido: [...oferecido, opcao] };
+      }
+    });
+  };
+
+  const handleAnexoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files.length > 0) {
+      const fileNames = Array.from(e.target.files).map(file => file.name);
+      setFormData((prev) => ({ ...prev, anexos: [...prev.anexos, ...fileNames] }));
+    }
+  };
+
+  const removeAnexo = (index: number) => {
+    setFormData((prev) => {
+      const anexos = [...prev.anexos];
+      anexos.splice(index, 1);
+      return { ...prev, anexos };
+    });
+  };
+
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
   };
@@ -154,72 +187,68 @@ export default function Home() {
       setLoading(true);
       
       // Preparar dados para envio ao backend
-      const dadosParaEnvio = {
-        nome: formData.nome,
-        email: formData.email,
-        telefone: formData.telefone,
-        tipo_caso: formData.tipoCaso,
-        numero_voo: formData.numeroVoo,
-        data_voo: formData.dataVoo,
-        companhia_aerea: formData.companhiaAerea,
-        descricao: formData.descricao,
-        valor_compensacao: formData.valorCompensacao,
-      };
-
-      // Função para fazer chamadas à API
-      const chamarAPI = async (endpoint: string, dados: any) => {
-        try {
-          console.log(`Enviando dados para ${endpoint}:`, dados);
+      const dadosParaEnvio = convertFormDataToVooData(formData);
+      
+      // Chamar todos os endpoints em paralelo usando o serviço de API
+      Promise.allSettled([
+        api.gerarResumo(dadosParaEnvio),
+        api.avaliarRegulacoes(dadosParaEnvio),
+        api.avaliarViabilidade(dadosParaEnvio),
+        api.calcularCompensacao(dadosParaEnvio),
+        api.gerarPlanoAcao(dadosParaEnvio),
+      ])
+        .then((results) => {
+          console.log("Resultados das chamadas à API:", results);
           
-          const response = await fetch(`${API_URL}${endpoint}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(dados),
-          });
+          // Extrair os resultados bem-sucedidos
+          const resumo = results[0].status === 'fulfilled' ? results[0].value : null;
+          const regulacoes = results[1].status === 'fulfilled' ? results[1].value : null;
+          const viabilidade = results[2].status === 'fulfilled' ? results[2].value : null;
+          const compensacao = results[3].status === 'fulfilled' ? results[3].value : null;
+          const planoAcao = results[4].status === 'fulfilled' ? results[4].value : null;
           
-          if (!response.ok) {
-            const errorText = await response.text();
-            console.error(`Resposta de erro de ${endpoint}:`, errorText);
-            throw new Error(`Erro na chamada à API: ${response.status} - ${errorText}`);
+          // Verificar quantos endpoints falharam
+          const falhas = results.filter(r => r.status === 'rejected').length;
+          
+          // Se todos os endpoints falharam, mostrar erro
+          if (falhas === results.length) {
+            toast.error("Não foi possível conectar ao servidor. Tente novamente mais tarde.");
+            setLoading(false);
+            return;
           }
           
-          const data = await response.json();
-          console.log(`Resposta de ${endpoint}:`, data);
-          return data;
-        } catch (error) {
-          console.error(`Erro ao chamar ${endpoint}:`, error);
-          return null;
-        }
-      };
-
-      // Chamar todos os endpoints em paralelo
-      Promise.all([
-        chamarAPI('/gerar-resumo', dadosParaEnvio),
-        chamarAPI('/avaliar-regulacoes', dadosParaEnvio),
-        chamarAPI('/avaliar-viabilidade', dadosParaEnvio),
-        chamarAPI('/calcular-compensacao', dadosParaEnvio),
-        chamarAPI('/gerar-plano-acao', dadosParaEnvio),
-      ])
-        .then(([resumo, regulacoes, viabilidade, compensacao, planoAcao]) => {
-          console.log("Respostas da API:", { resumo, regulacoes, viabilidade, compensacao, planoAcao });
+          // Se alguns endpoints falharam, mostrar aviso
+          if (falhas > 0) {
+            toast("Alguns dados não puderam ser carregados. Continuando com informações disponíveis.");
+          }
           
           // Gerar a petição com base nos dados e respostas da API
           const peticao = gerarPeticao(
             formData, 
-            resumo?.texto || "Não foi possível gerar o resumo.", 
-            regulacoes?.leis || "Não foi possível avaliar as regulamentações."
+            resumo?.resposta || "Não foi possível gerar o resumo.", 
+            regulacoes?.resposta || "Não foi possível avaliar as regulamentações."
           );
+          
+          // Extrair probabilidade e valor estimado, com fallbacks
+          const probabilidadeVitoria = viabilidade?.resposta 
+            ? extrairProbabilidade(viabilidade.resposta) 
+            : 85; // Valor padrão
+          
+          const valorEstimado = compensacao?.resposta 
+            ? extrairValor(compensacao.resposta) 
+            : parseFloat(formData.valorCompensacao) * 3; // Valor padrão
+          
+          // Gerar instruções padrão se não houver resposta
+          const instrucoesPadrao = "1. Imprima a petição em 3 vias\n2. Assine todas as vias\n3. Apresente na vara cível do seu município\n4. Guarde uma via para seus registros\n5. Acompanhe o processo pelo número que será fornecido no protocolo";
           
           setResultado({
             peticao,
-            probabilidadeVitoria: viabilidade?.probabilidade || 85,
-            valorEstimado: compensacao?.valor || parseFloat(formData.valorCompensacao) * 3,
-            instrucoes: planoAcao?.passos || "1. Imprima a petição em 3 vias\n2. Assine todas as vias\n3. Apresente na vara cível do seu município\n4. Guarde uma via para seus registros\n5. Acompanhe o processo pelo número que será fornecido no protocolo",
-            resumo: resumo?.texto || "Não foi possível gerar o resumo.",
-            regulacoes: regulacoes?.leis || "Não foi possível avaliar as regulamentações.",
-            planoAcao: planoAcao?.passos || "Não foi possível gerar o plano de ação.",
+            probabilidadeVitoria,
+            valorEstimado,
+            instrucoes: planoAcao?.resposta || instrucoesPadrao,
+            resumo: resumo?.resposta || "Não foi possível gerar o resumo.",
+            regulacoes: regulacoes?.resposta || "Não foi possível avaliar as regulamentações.",
+            planoAcao: planoAcao?.resposta || "Não foi possível gerar o plano de ação.",
           });
           
           setLoading(false);
@@ -232,6 +261,29 @@ export default function Home() {
           setLoading(false);
         });
     }
+  };
+
+  // Função para extrair a probabilidade de sucesso do texto da resposta
+  const extrairProbabilidade = (texto: string): number => {
+    // Tenta encontrar um número de 0 a 100 seguido de % no texto
+    const match = texto.match(/(\d+)%/);
+    if (match && match[1]) {
+      const valor = parseInt(match[1], 10);
+      return isNaN(valor) ? 85 : Math.min(100, Math.max(0, valor));
+    }
+    return 85; // Valor padrão se não encontrar
+  };
+
+  // Função para extrair o valor de compensação do texto da resposta
+  const extrairValor = (texto: string): number => {
+    // Tenta encontrar um valor monetário no formato R$ X.XXX,XX ou R$ XXXX,XX
+    const match = texto.match(/R\$\s*(\d+(?:\.\d{3})*(?:,\d{2})?)/);
+    if (match && match[1]) {
+      const valorStr = match[1].replace('.', '').replace(',', '.');
+      const valor = parseFloat(valorStr);
+      return isNaN(valor) ? parseFloat(formData.valorCompensacao) * 3 : valor;
+    }
+    return parseFloat(formData.valorCompensacao) * 3; // Valor padrão se não encontrar
   };
 
   // Função para gerar a petição com base nos dados e respostas da API
@@ -259,6 +311,12 @@ export default function Home() {
       companhiaAerea: "",
       descricao: "",
       valorCompensacao: "",
+      origem: "",
+      destino: "",
+      cpf: "",
+      cidadeEstado: "",
+      oferecido: [],
+      anexos: [],
     });
     setResultado({
       peticao: "",
@@ -315,27 +373,31 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6 h-full flex flex-col justify-center"
+            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6 h-full flex flex-col justify-start"
           >
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="mb-6 sm:mb-8"
+              className="mb-2"
             >
               <motion.div 
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
-                className="w-16 h-16 sm:w-20 sm:h-20 bg-white rounded-full flex items-center justify-center mx-auto mb-4 sm:mb-6"
+                className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mx-auto mb-1"
               >
-                <Scale className="h-8 w-8 sm:h-10 sm:w-10 text-dark-950" />
+                <img 
+                  src="/images/logo.png" 
+                  alt="Jurito Logo" 
+                  className="w-full h-full object-contain"
+                />
               </motion.div>
               <motion.h1 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4, duration: 0.5 }}
-                className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-3 sm:mb-4"
+                className="text-3xl sm:text-4xl md:text-5xl font-bold text-white mb-2"
               >
                 {t('welcome.title')}
               </motion.h1>
@@ -343,7 +405,7 @@ export default function Home() {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.5, duration: 0.5 }}
-                className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto"
+                className="text-lg sm:text-xl text-white/70 max-w-2xl mx-auto mb-4"
               >
                 {t('welcome.subtitle')}
               </motion.p>
@@ -353,7 +415,7 @@ export default function Home() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.6, duration: 0.5 }}
-              className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-6 mb-8 sm:mb-12"
+              className="grid grid-cols-1 md:grid-cols-3 gap-3 sm:gap-4 mb-6"
             >
               <motion.div 
                 whileHover={{ scale: 1.03, transition: { duration: 0.2 } }}
@@ -419,13 +481,13 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-start pt-2"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
+              className="text-xl sm:text-2xl font-bold text-white mb-4"
             >
               {t('form.personal.title')}
             </motion.h2>
@@ -433,7 +495,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="space-y-3 sm:space-y-4"
+              className="space-y-3"
             >
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
@@ -446,7 +508,7 @@ export default function Home() {
                   name="nome"
                   value={formData.nome}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                   placeholder={t('form.personal.name')}
                 />
               </motion.div>
@@ -461,7 +523,7 @@ export default function Home() {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                   placeholder={t('form.personal.email')}
                 />
               </motion.div>
@@ -476,8 +538,38 @@ export default function Home() {
                   name="telefone"
                   value={formData.telefone}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                   placeholder={t('form.personal.phone')}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+              >
+                <label className="block text-sm text-white/60 mb-1">{t('form.personal.cpf')}</label>
+                <input
+                  type="text"
+                  name="cpf"
+                  value={formData.cpf}
+                  onChange={handleInputChange}
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
+                  placeholder={t('form.personal.cpf')}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <label className="block text-sm text-white/60 mb-1">{t('form.personal.city')}</label>
+                <input
+                  type="text"
+                  name="cidadeEstado"
+                  value={formData.cidadeEstado}
+                  onChange={handleInputChange}
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
+                  placeholder={t('form.personal.city')}
                 />
               </motion.div>
             </motion.div>
@@ -493,13 +585,13 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-start pt-2"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
+              className="text-xl sm:text-2xl font-bold text-white mb-4"
             >
               {t('form.flight.title')}
             </motion.h2>
@@ -507,7 +599,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="space-y-3 sm:space-y-4"
+              className="space-y-3"
             >
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
@@ -528,7 +620,7 @@ export default function Home() {
                   name="numeroVoo"
                   value={formData.numeroVoo}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                   placeholder="Ex: LA1234"
                 />
               </motion.div>
@@ -543,7 +635,7 @@ export default function Home() {
                   name="dataVoo"
                   value={formData.dataVoo}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                 />
               </motion.div>
               <motion.div
@@ -557,8 +649,38 @@ export default function Home() {
                   name="companhiaAerea"
                   value={formData.companhiaAerea}
                   onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
                   placeholder="Ex: Latam, Gol, Azul"
+                />
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.8, duration: 0.5 }}
+              >
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.origin')}</label>
+                <input
+                  type="text"
+                  name="origem"
+                  value={formData.origem}
+                  onChange={handleInputChange}
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
+                  placeholder={t('form.flight.origin')}
+                />
+              </motion.div>
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.9, duration: 0.5 }}
+              >
+                <label className="block text-sm text-white/60 mb-1">{t('form.flight.destination')}</label>
+                <input
+                  type="text"
+                  name="destino"
+                  value={formData.destino}
+                  onChange={handleInputChange}
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10"
+                  placeholder={t('form.flight.destination')}
                 />
               </motion.div>
             </motion.div>
@@ -574,13 +696,13 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-center"
+            className="w-full max-w-md mx-auto px-4 sm:px-0 h-full flex flex-col justify-start pt-2"
           >
             <motion.h2 
               initial={{ opacity: 0, y: -20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2, duration: 0.5 }}
-              className="text-xl sm:text-2xl font-bold text-white mb-4 sm:mb-6"
+              className="text-xl sm:text-2xl font-bold text-white mb-4"
             >
               {t('form.description.title')}
             </motion.h2>
@@ -588,7 +710,7 @@ export default function Home() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="space-y-3 sm:space-y-4"
+              className="space-y-3"
             >
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
@@ -600,25 +722,164 @@ export default function Home() {
                   name="descricao"
                   value={formData.descricao}
                   onChange={handleInputChange}
-                  rows={4}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10 resize-none"
+                  rows={3}
+                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10 resize-none"
                   placeholder={t('form.description.description')}
                 />
               </motion.div>
+              
               <motion.div
                 initial={{ x: -20, opacity: 0 }}
                 animate={{ x: 0, opacity: 1 }}
-                transition={{ delay: 0.5, duration: 0.5 }}
+                transition={{ delay: 0.6, duration: 0.5 }}
+                className="mt-2"
               >
-                <label className="block text-sm text-white/60 mb-1">{t('form.description.value')}</label>
-                <input
-                  type="text"
-                  name="valorCompensacao"
-                  value={formData.valorCompensacao}
-                  onChange={handleInputChange}
-                  className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 sm:p-3 focus:border-white/20 focus:ring-white/10"
-                  placeholder="Ex: 500,00"
-                />
+                <label className="block text-sm text-white/60 mb-4">{t('form.description.offered')}</label>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative flex items-center p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.oferecido.includes('reembolso')
+                        ? 'bg-white/10 border-2 border-white shadow-lg'
+                        : 'bg-dark-900/80 border border-white/10 hover:bg-white/5'
+                    }`}
+                    onClick={() => handleOferecidoChange('reembolso')}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
+                      formData.oferecido.includes('reembolso')
+                        ? 'border-white bg-white'
+                        : 'border-white/30 bg-transparent'
+                    }`}>
+                      {formData.oferecido.includes('reembolso') && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-2 h-2 rounded-full bg-dark-950"
+                        />
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      formData.oferecido.includes('reembolso')
+                        ? 'text-white font-medium'
+                        : 'text-white/80'
+                    }`}>{t('form.description.options.refund')}</span>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative flex items-center p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.oferecido.includes('reacomodacao')
+                        ? 'bg-white/10 border-2 border-white shadow-lg'
+                        : 'bg-dark-900/80 border border-white/10 hover:bg-white/5'
+                    }`}
+                    onClick={() => handleOferecidoChange('reacomodacao')}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
+                      formData.oferecido.includes('reacomodacao')
+                        ? 'border-white bg-white'
+                        : 'border-white/30 bg-transparent'
+                    }`}>
+                      {formData.oferecido.includes('reacomodacao') && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-2 h-2 rounded-full bg-dark-950"
+                        />
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      formData.oferecido.includes('reacomodacao')
+                        ? 'text-white font-medium'
+                        : 'text-white/80'
+                    }`}>{t('form.description.options.reaccommodation')}</span>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative flex items-center p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.oferecido.includes('voucher')
+                        ? 'bg-white/10 border-2 border-white shadow-lg'
+                        : 'bg-dark-900/80 border border-white/10 hover:bg-white/5'
+                    }`}
+                    onClick={() => handleOferecidoChange('voucher')}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
+                      formData.oferecido.includes('voucher')
+                        ? 'border-white bg-white'
+                        : 'border-white/30 bg-transparent'
+                    }`}>
+                      {formData.oferecido.includes('voucher') && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-2 h-2 rounded-full bg-dark-950"
+                        />
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      formData.oferecido.includes('voucher')
+                        ? 'text-white font-medium'
+                        : 'text-white/80'
+                    }`}>{t('form.description.options.voucher')}</span>
+                  </motion.div>
+
+                  <motion.div
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                    className={`relative flex items-center p-4 rounded-xl cursor-pointer transition-all duration-200 ${
+                      formData.oferecido.includes('nenhuma')
+                        ? 'bg-white/10 border-2 border-white shadow-lg'
+                        : 'bg-dark-900/80 border border-white/10 hover:bg-white/5'
+                    }`}
+                    onClick={() => handleOferecidoChange('nenhuma')}
+                  >
+                    <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center mr-3 transition-all duration-200 ${
+                      formData.oferecido.includes('nenhuma')
+                        ? 'border-white bg-white'
+                        : 'border-white/30 bg-transparent'
+                    }`}>
+                      {formData.oferecido.includes('nenhuma') && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-2 h-2 rounded-full bg-dark-950"
+                        />
+                      )}
+                    </div>
+                    <span className={`text-sm ${
+                      formData.oferecido.includes('nenhuma')
+                        ? 'text-white font-medium'
+                        : 'text-white/80'
+                    }`}>{t('form.description.options.none')}</span>
+                  </motion.div>
+                </div>
+              </motion.div>
+              
+              <motion.div
+                initial={{ x: -20, opacity: 0 }}
+                animate={{ x: 0, opacity: 1 }}
+                transition={{ delay: 0.7, duration: 0.5 }}
+                className="mt-4"
+              >
+                <label className="block text-sm text-white/60 mb-2">{t('form.description.attachments')}</label>
+                <div 
+                  className="border-2 border-dashed border-white/20 rounded-lg p-4 text-center cursor-pointer hover:border-white/30 transition-colors"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <FileText className="h-6 w-6 mx-auto mb-2 text-white/60" />
+                  <p className="text-sm text-white/60">{t('form.description.clickToUpload')}</p>
+                  <p className="text-xs text-white/40 mt-1">{t('form.description.supportedFiles')}</p>
+                  <input 
+                    type="file" 
+                    id="file-upload" 
+                    className="hidden" 
+                    multiple 
+                    onChange={handleAnexoChange}
+                  />
+                </div>
               </motion.div>
             </motion.div>
           </motion.div>
@@ -842,83 +1103,8 @@ export default function Home() {
         </div>
       </motion.header>
       
-      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-8 flex flex-col items-center justify-center">
-        {step > 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: -20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-            className="w-full flex justify-center mb-6 sm:mb-8 px-4 sticky top-0 z-10 bg-dark-950/80 backdrop-blur-sm py-2"
-          >
-            <div className="flex items-center justify-center w-full max-w-md">
-              <div className="flex items-center justify-between w-full">
-                <motion.div 
-                  className={`flex flex-col items-center ${step >= 1 ? 'text-white' : 'text-white/30'}`}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <motion.div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 1 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                    animate={{ scale: step >= 1 ? [1, 1.2, 1] : 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <span className="text-sm font-medium">1</span>
-                  </motion.div>
-                  <span className="mt-1 text-xs font-medium">{t('steps.personal')}</span>
-                </motion.div>
-                
-                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
-                
-                <motion.div 
-                  className={`flex flex-col items-center ${step >= 2 ? 'text-white' : 'text-white/30'}`}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <motion.div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 2 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                    animate={{ scale: step >= 2 ? [1, 1.2, 1] : 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <span className="text-sm font-medium">2</span>
-                  </motion.div>
-                  <span className="mt-1 text-xs font-medium">{t('steps.flight')}</span>
-                </motion.div>
-                
-                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
-                
-                <motion.div 
-                  className={`flex flex-col items-center ${step >= 3 ? 'text-white' : 'text-white/30'}`}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <motion.div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 3 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                    animate={{ scale: step >= 3 ? [1, 1.2, 1] : 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <span className="text-sm font-medium">3</span>
-                  </motion.div>
-                  <span className="mt-1 text-xs font-medium">{t('steps.description')}</span>
-                </motion.div>
-                
-                <div className="flex-1 h-0.5 bg-white/10 mx-2 sm:mx-4"></div>
-                
-                <motion.div 
-                  className={`flex flex-col items-center ${step >= 4 ? 'text-white' : 'text-white/30'}`}
-                  whileHover={{ scale: 1.05 }}
-                >
-                  <motion.div 
-                    className={`w-8 h-8 rounded-full flex items-center justify-center ${step >= 4 ? 'bg-white text-dark-950' : 'bg-white/10'}`}
-                    animate={{ scale: step >= 4 ? [1, 1.2, 1] : 1 }}
-                    transition={{ duration: 0.3 }}
-                  >
-                    <span className="text-sm font-medium">4</span>
-                  </motion.div>
-                  <span className="mt-1 text-xs font-medium">{t('steps.result')}</span>
-                </motion.div>
-              </div>
-            </div>
-          </motion.div>
-        )}
-        
-        <div className={`w-full ${step === 4 ? 'h-auto min-h-[500px]' : 'h-[500px]'} flex items-center justify-center`}>
+      <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 flex flex-col items-center justify-center relative">
+        <div className={`w-full ${step === 4 ? 'h-auto min-h-[500px]' : step === 0 ? 'h-screen' : 'min-h-[600px]'} flex items-start justify-center overflow-hidden pt-4`}>
           {loading ? (
             <motion.div 
               initial={{ opacity: 0 }}
@@ -935,6 +1121,20 @@ export default function Home() {
               >
                 {t('loading')}
               </motion.p>
+              <motion.button
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.8 }}
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                onClick={() => {
+                  setLoading(false);
+                  toast.error(t('processCancelled'));
+                }}
+                className="mt-6 px-4 py-2 bg-white/10 hover:bg-white/20 text-white rounded-lg transition-colors text-sm font-medium border border-white/20"
+              >
+                {t('cancel')}
+              </motion.button>
             </motion.div>
           ) : (
             <AnimatePresence initial={false} custom={direction} mode="wait">
@@ -942,20 +1142,20 @@ export default function Home() {
             </AnimatePresence>
           )}
         </div>
-        
+
         {step > 0 && (
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
-            className="w-full max-w-md mx-auto mt-6 sm:mt-8 flex justify-between"
+            className="w-full max-w-md mx-auto flex justify-between bg-dark-950/80 backdrop-blur-sm py-3 z-10 px-4 rounded-xl mt-4"
           >
             {step > 1 && step < 4 && (
               <motion.button
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleBackStep}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg border border-white/10 text-white hover:bg-white/5 transition-colors text-sm sm:text-base"
+                className="px-4 sm:px-6 py-2 rounded-lg text-white hover:bg-white/5 transition-colors text-sm sm:text-base font-medium"
               >
                 {t('form.buttons.back')}
               </motion.button>
@@ -966,10 +1166,10 @@ export default function Home() {
                 whileHover={{ scale: 1.05 }}
                 whileTap={{ scale: 0.95 }}
                 onClick={handleNextStep}
-                className="ml-auto bg-white text-dark-950 px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base"
+                className={`${step > 1 ? 'ml-4' : 'ml-auto'} bg-white text-dark-950 px-4 sm:px-6 py-2 rounded-lg hover:bg-white/90 transition-colors flex items-center text-sm sm:text-base font-medium`}
               >
                 {step === 3 ? t('form.buttons.generate') : t('form.buttons.next')}
-                <ArrowRight className="h-3 w-3 sm:h-4 sm:w-4 ml-1 sm:ml-2" />
+                <ArrowRight className="h-4 w-4 ml-2" />
               </motion.button>
             )}
           </motion.div>
@@ -980,7 +1180,7 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5, duration: 0.5 }}
-        className="w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 text-center text-white/40 text-xs sm:text-sm"
+        className="w-full max-w-6xl mx-auto px-4 py-4 text-center text-white/40 text-xs sm:text-sm"
       >
         <p>{t('footer')}</p>
       </motion.footer>

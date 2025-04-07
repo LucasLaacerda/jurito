@@ -10,7 +10,8 @@
   },
   "dependencies": {
     "@headlessui/react": "^2.2.0",
-    "axios": "^1.8.4",
+    "axios": "^1.6.2",
+    "axios-retry": "^4.5.0",
     "framer-motion": "^12.6.3",
     "i18next": "^24.2.3",
     "lucide-react": "^0.487.0",

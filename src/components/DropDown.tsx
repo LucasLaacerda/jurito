@@ -1,76 +1,72 @@
-import React, { useState } from 'react';
-import { ChevronDown } from 'lucide-react';
-import { useTranslation } from 'next-i18next';
+import React, { useState, useRef, useEffect } from 'react';
 
-export type CasoType = "Voo Atrasado" | "Voo Cancelado" | "Bagagem Extraviada" | "Overbooking" | "Outro";
+export type CasoType = 'Voo Atrasado' | 'Voo Cancelado' | 'Bagagem Extraviada' | 'Overbooking' | 'Outro';
 
 interface DropDownProps {
   caso: CasoType;
   setCaso: (caso: CasoType) => void;
 }
 
-const DropDown = ({ caso, setCaso }: DropDownProps) => {
+const DropDown: React.FC<DropDownProps> = ({ caso, setCaso }) => {
   const [isOpen, setIsOpen] = useState(false);
-  const { t } = useTranslation('common');
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
-  const opcoes: CasoType[] = [
-    "Voo Atrasado",
-    "Voo Cancelado",
-    "Bagagem Extraviada",
-    "Overbooking",
-    "Outro"
+  const options: CasoType[] = [
+    'Voo Atrasado',
+    'Voo Cancelado',
+    'Bagagem Extraviada',
+    'Overbooking',
+    'Outro'
   ];
 
-  // Função para converter o tipo de caso para a chave de tradução
-  const getTranslationKey = (tipo: string) => {
-    switch (tipo) {
-      case "Voo Atrasado":
-        return "voo_atrasado";
-      case "Voo Cancelado":
-        return "voo_cancelado";
-      case "Bagagem Extraviada":
-        return "bagagem_extraviada";
-      case "Overbooking":
-        return "overbooking";
-      case "Outro":
-        return "outro";
-      default:
-        return tipo.toLowerCase().replace(' ', '_');
-    }
-  };
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
 
-  // Função para obter o texto traduzido
-  const getTranslatedText = (tipo: string) => {
-    const key = getTranslationKey(tipo);
-    return t(`form.flight.options.${key}`);
-  };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   return (
-    <div className="relative">
+    <div className="relative" ref={dropdownRef}>
       <button
         type="button"
-        className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-3 focus:border-white/20 focus:ring-white/10 flex justify-between items-center"
+        className="w-full bg-dark-900/80 border border-white/10 rounded-lg text-white p-2 focus:border-white/20 focus:ring-white/10 flex justify-between items-center"
         onClick={() => setIsOpen(!isOpen)}
       >
-        <span>{getTranslatedText(caso)}</span>
-        <ChevronDown className={`h-4 w-4 transition-transform ${isOpen ? 'transform rotate-180' : ''}`} />
+        <span>{caso}</span>
+        <svg
+          className={`h-5 w-5 text-white/60 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 20 20"
+          fill="currentColor"
+        >
+          <path
+            fillRule="evenodd"
+            d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z"
+            clipRule="evenodd"
+          />
+        </svg>
       </button>
-      
       {isOpen && (
-        <div className="absolute z-10 mt-1 w-full bg-dark-900 rounded-lg shadow-lg border border-white/10 overflow-hidden">
-          {opcoes.map((opcao) => (
+        <div className="absolute z-10 mt-1 w-full bg-dark-900/95 border border-white/10 rounded-lg shadow-lg overflow-hidden">
+          {options.map((option) => (
             <button
-              key={opcao}
-              type="button"
-              className={`w-full text-left px-4 py-2 text-sm ${
-                caso === opcao ? 'bg-white/10 text-white' : 'text-white/70 hover:bg-white/5'
+              key={option}
+              className={`w-full text-left px-4 py-2 text-sm text-white hover:bg-white/10 ${
+                caso === option ? 'bg-white/5' : ''
               }`}
               onClick={() => {
-                setCaso(opcao);
+                setCaso(option);
                 setIsOpen(false);
               }}
             >
-              {getTranslatedText(opcao)}
+              {option}
             </button>
           ))}
         </div>
