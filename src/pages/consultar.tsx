@@ -58,7 +58,7 @@ const Consultar: React.FC = () => {
   const { register, handleSubmit, watch } = useForm<FormData>();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [resultado, setResultado] = useState<string>('');
+  const [resultado, setResultado] = useState<ApiResponse | null>(null);
 
   const nextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
@@ -72,8 +72,7 @@ const Consultar: React.FC = () => {
     }
   };
 
-  const handleSubmitForm = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleSubmitForm = async (data: FormData) => {
     setLoading(true);
     
     try {
@@ -82,17 +81,15 @@ const Consultar: React.FC = () => {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          // seus dados aqui
-        }),
+        body: JSON.stringify(data),
       });
 
       if (!response.ok) {
         throw new Error('Erro na consulta');
       }
 
-      const resultado = await response.json();
-      setResultado(resultado);
+      const resultadoData = await response.json();
+      setResultado(resultadoData);
     } catch (error) {
       console.error('Erro:', error);
     } finally {

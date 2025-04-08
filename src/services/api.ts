@@ -15,6 +15,7 @@ export interface VooData {
   valor: string;
   cidade_estado: string;
   anexos: string[];
+  [key: string]: string | string[]; // Adicionando índice de assinatura para compatibilidade com Record<string, unknown>
 }
 
 // Interface para os dados do formulário
@@ -56,29 +57,29 @@ export const convertFormDataToVooData = (formData: FormData): VooData => {
 };
 
 // Função para lidar com erros de API
-const handleApiError = (error: Error, endpoint: string) => {
+const handleApiError = (error: unknown, endpoint: string) => {
   console.error(`Erro ao chamar ${endpoint}:`, error);
   
   // Verificar se é um erro de timeout
-  if (error.message?.includes('timeout')) {
+  if (error instanceof Error && error.message?.includes('timeout')) {
     console.warn(`Timeout ao chamar ${endpoint}. Tentando novamente...`);
     return null; // Retorna null para permitir que o retry do axios-retry funcione
   }
   
   // Verificar se é um erro de rede
-  if (!error.message?.includes('response')) {
+  if (error instanceof Error && !error.message?.includes('response')) {
     console.error(`Erro de rede ao chamar ${endpoint}. Verifique sua conexão.`);
     return null;
   }
   
   // Verificar se é um erro do servidor
-  if (error.message?.includes('500')) {
+  if (error instanceof Error && error.message?.includes('500')) {
     console.error(`Erro do servidor (500) ao chamar ${endpoint}.`);
     return null;
   }
   
   // Outros erros
-  console.error(`Erro ao chamar ${endpoint}: ${error.message}`);
+  console.error(`Erro ao chamar ${endpoint}: ${error instanceof Error ? error.message : String(error)}`);
   return null;
 };
 
@@ -92,7 +93,7 @@ const callApiWithRetry = async (endpoint: string, data: Record<string, unknown>,
       const response = await axiosInstance.post(endpoint, data);
       console.log(`Resposta de ${endpoint}:`, response.data);
       return response.data;
-    } catch (err) {
+    } catch {
       retries++;
       
       if (retries > maxRetries) {
