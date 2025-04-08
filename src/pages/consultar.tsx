@@ -1,5 +1,8 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
+import { useTranslation } from 'next-i18next';
+import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
+import { GetStaticProps } from 'next';
 import Layout from '../components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
 import axios from 'axios';
@@ -55,11 +58,12 @@ const questions = [
   }
 ];
 
-const ConsultarPage: React.FC = () => {
+const Consultar: React.FC = () => {
+  const { t } = useTranslation('common');
   const { register, handleSubmit, watch } = useForm<FormData>();
   const [currentQuestion, setCurrentQuestion] = useState(0);
-  const [isLoading, setIsLoading] = useState(false);
-  const [resultado, setResultado] = useState<ApiResponse | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [resultado, setResultado] = useState<string>('');
 
   const nextQuestion = () => {
     if (currentQuestion < questions.length - 1) {
@@ -73,30 +77,31 @@ const ConsultarPage: React.FC = () => {
     }
   };
 
-  const onSubmit = async (data: FormData) => {
-    setIsLoading(true);
+  const handleSubmitForm = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    
     try {
-      const baseUrl = 'https://web-production-192c4.up.railway.app';
-      
-      // Simulando análise com delay para melhor UX
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      
-      // Aqui você pode adicionar suas chamadas de API reais
-      setResultado({
-        resumo: "Analisamos seu caso e identificamos uma grande chance de sucesso!",
-        regulacoes: ["ANAC 400", "Código do Consumidor"],
-        viabilidade: 85,
-        compensacao: 2500,
-        planoAcao: [
-          "Enviar notificação extrajudicial",
-          "Registrar reclamação na ANAC",
-          "Iniciar processo de mediação"
-        ]
+      const response = await fetch(`${process.env.NEXT_PUBLIC_JURITO_BACKEND_URL}/api/consultar`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          // seus dados aqui
+        }),
       });
+
+      if (!response.ok) {
+        throw new Error('Erro na consulta');
+      }
+
+      const resultado = await response.json();
+      setResultado(resultado);
     } catch (error) {
       console.error('Erro:', error);
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
@@ -129,7 +134,7 @@ const ConsultarPage: React.FC = () => {
                     {questions[currentQuestion].question}
                   </motion.h2>
 
-                  <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+                  <form onSubmit={handleSubmit(handleSubmitForm)} className="space-y-6">
                     {questions[currentQuestion].type === 'textarea' && (
                       <textarea
                         {...register(questions[currentQuestion].id as keyof FormData)}
@@ -186,10 +191,10 @@ const ConsultarPage: React.FC = () => {
                       {currentQuestion === questions.length - 1 ? (
                         <button
                           type="submit"
-                          disabled={!canAdvance || isLoading}
+                          disabled={!canAdvance || loading}
                           className="px-6 py-3 rounded-xl bg-white text-purple-600 font-medium hover:bg-white/90 transition-all duration-200 disabled:opacity-50"
                         >
-                          {isLoading ? 'Analisando...' : 'Analisar meu caso ✨'}
+                          {loading ? 'Analisando...' : 'Analisar meu caso ✨'}
                         </button>
                       ) : (
                         <button
@@ -300,4 +305,4 @@ const ConsultarPage: React.FC = () => {
   );
 };
 
-export default ConsultarPage; 
+export default Consultar; 
