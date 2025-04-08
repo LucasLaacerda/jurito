@@ -3,19 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
-import { Plane, Clock, Calendar, CheckCircle, ArrowRight, FileText, Percent, DollarSign, Info, Scale, Shield, Zap, Globe } from "lucide-react";
+import { Plane, ArrowRight, FileText, Percent, Shield, Zap, Globe } from "lucide-react";
 import LoadingDots from "../components/LoadingDots";
 import DropDown, { CasoType } from "../components/DropDown";
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
 import Image from 'next/image';
 import api, { convertFormDataToVooData } from '../services/api';
-
-// URL base da API
-const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
 
 // Variantes de animação para as transições
 const pageVariants = {
@@ -103,6 +99,7 @@ interface FormData {
   cidadeEstado: string;
   oferecido: string[];
   anexos: string[];
+  [key: string]: string | string[] | CasoType;
 }
 
 export default function Home() {
