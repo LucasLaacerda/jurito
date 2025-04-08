@@ -1,6 +1,8 @@
 import React from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
+import Link from 'next/link';
+import { ArrowRight } from 'lucide-react';
 
 const ComoFunciona: React.FC = () => {
   return (
@@ -257,9 +259,10 @@ const ComoFunciona: React.FC = () => {
               viewport={{ once: true }}
               transition={{ duration: 0.5, delay: 0.2 }}
             >
-              <a href="/consultar" className="glass-button inline-block">
+              <Link href="/consultar/" className="bg-white text-dark-950 px-6 py-3 rounded-xl hover:bg-white/90 transition-colors flex items-center justify-center text-lg font-medium shadow-lg hover:shadow-xl transform hover:-translate-y-1 transition-all">
                 Consultar meu caso agora
-              </a>
+                <ArrowRight className="h-5 w-5 ml-2" />
+              </Link>
             </motion.div>
           </div>
         </div>

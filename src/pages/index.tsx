@@ -3,18 +3,15 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
-import { Plane, Clock, Calendar, CheckCircle, ArrowRight, FileText, Percent, DollarSign, Info, Scale, Shield, Zap, Globe } from "lucide-react";
+import { Plane, ArrowRight, FileText, Percent, Shield, Zap, Globe } from "lucide-react";
 import LoadingDots from "../components/LoadingDots";
 import DropDown, { CasoType } from "../components/DropDown";
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+import Image from 'next/image';
 import api, { convertFormDataToVooData } from '../services/api';
-
-// URL base da API
-const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
 
 // Variantes de animação para as transições
 const pageVariants = {
@@ -86,6 +83,25 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => {
   };
 };
 
+interface FormData {
+  nome: string;
+  email: string;
+  telefone: string;
+  tipoCaso: CasoType;
+  numeroVoo: string;
+  dataVoo: string;
+  companhiaAerea: string;
+  descricao: string;
+  valorCompensacao: string;
+  origem: string;
+  destino: string;
+  cpf: string;
+  cidadeEstado: string;
+  oferecido: string[];
+  anexos: string[];
+  [key: string]: string | string[] | CasoType;
+}
+
 export default function Home() {
   const { t } = useTranslation('common');
   const router = useRouter();
@@ -94,7 +110,7 @@ export default function Home() {
   const [step, setStep] = useState(0); // Começamos com o step 0 (tela inicial)
   const [[page, direction], setPage] = useState([0, 0]);
   const [isMobile, setIsMobile] = useState(false);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<FormData>({
     nome: "",
     email: "",
     telefone: "",
@@ -162,14 +178,6 @@ export default function Home() {
       const fileNames = Array.from(e.target.files).map(file => file.name);
       setFormData((prev) => ({ ...prev, anexos: [...prev.anexos, ...fileNames] }));
     }
-  };
-
-  const removeAnexo = (index: number) => {
-    setFormData((prev) => {
-      const anexos = [...prev.anexos];
-      anexos.splice(index, 1);
-      return { ...prev, anexos };
-    });
   };
 
   const paginate = (newDirection: number) => {
@@ -287,7 +295,7 @@ export default function Home() {
   };
 
   // Função para gerar a petição com base nos dados e respostas da API
-  const gerarPeticao = (dados: any, resumo: string, regulacoes: string) => {
+  const gerarPeticao = (dados: FormData, resumo: string, regulacoes: string) => {
     return `PETIÇÃO INICIAL\n\nExmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n${dados.nome}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${dados.companhiaAerea}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\nFATOS\n\n${resumo}\n\nDIREITO\n\n${regulacoes}\n\nPEDIDO\n\nAnte o exposto, requer:\n\n1. A citação da ré, na forma da lei;\n\n2. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${dados.valorCompensacao}, a título de reembolso do valor da passagem e despesas adicionais;\n\n4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${(parseFloat(dados.valorCompensacao) * 2).toFixed(2)}, a título de compensação pelos transtornos sofridos;\n\n5. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50;\n\n6. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n7. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50.\n\nNestes termos,\nPede deferimento.\n\nSão Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n${dados.nome}\nCPF: XXX.XXX.XXX-XX`;
   };
 
@@ -387,9 +395,11 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
                 className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mx-auto mb-1"
               >
-                <img 
+                <Image 
                   src="/images/logo.png" 
                   alt="Jurito Logo" 
+                  width={224}
+                  height={224}
                   className="w-full h-full object-contain"
                 />
               </motion.div>

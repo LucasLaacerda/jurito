@@ -1,9 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
+import { toast } from 'react-hot-toast';
 
 // Configuração global do axios
 const axiosInstance = axios.create({
-  baseURL: 'https://web-production-192c4.up.railway.app',
+  baseURL: process.env.NEXT_PUBLIC_JURITO_BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -14,10 +15,9 @@ const axiosInstance = axios.create({
 axiosRetry(axiosInstance, { 
   retries: 3,
   retryDelay: axiosRetry.exponentialDelay,
-  retryCondition: (error: any) => {
+  retryCondition: (error: AxiosError) => {
     return axiosRetry.isNetworkOrIdempotentRequestError(error) || 
-           error.code === 'ECONNABORTED' || 
-           error.message.includes('timeout');
+           (error instanceof Error && error.message.includes('timeout'));
   }
 });
 
@@ -35,31 +35,10 @@ axiosInstance.interceptors.request.use(
 
 // Interceptor para tratar erros de resposta
 axiosInstance.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    // Tratamento global de erros
-    if (error.response) {
-      // O servidor respondeu com um status de erro
-      console.error('Erro de resposta:', error.response.status, error.response.data);
-      
-      // Você pode adicionar lógica específica para diferentes códigos de status
-      if (error.response.status === 401) {
-        // Não autorizado - redirecionar para login ou renovar token
-      } else if (error.response.status === 404) {
-        // Recurso não encontrado
-      } else if (error.response.status >= 500) {
-        // Erro do servidor
-      }
-    } else if (error.request) {
-      // A requisição foi feita, mas não houve resposta
-      console.error('Erro de requisição:', error.request);
-    } else {
-      // Algo aconteceu na configuração da requisição
-      console.error('Erro:', error.message);
-    }
-    
+  (response) => response,
+  (error: AxiosError<{ message: string }>) => {
+    const errorMessage = error.response?.data?.message || error.message || 'Ocorreu um erro na requisição';
+    toast.error(errorMessage);
     return Promise.reject(error);
   }
 );
