@@ -180,14 +180,6 @@ export default function Home() {
     }
   };
 
-  const removeAnexo = (index: number) => {
-    setFormData((prev) => {
-      const anexos = [...prev.anexos];
-      anexos.splice(index, 1);
-      return { ...prev, anexos };
-    });
-  };
-
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
   };

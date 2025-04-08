@@ -1,11 +1,7 @@
 import React, { useState } from 'react';
 import { useForm } from 'react-hook-form';
-import { useTranslation } from 'next-i18next';
-import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
-import { GetStaticProps } from 'next';
 import Layout from '../components/Layout';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
 
 // Tipos para o formulário
 type FormData = {
@@ -59,7 +55,6 @@ const questions = [
 ];
 
 const Consultar: React.FC = () => {
-  const { t } = useTranslation('common');
   const { register, handleSubmit, watch } = useForm<FormData>();
   const [currentQuestion, setCurrentQuestion] = useState(0);
   const [loading, setLoading] = useState(false);

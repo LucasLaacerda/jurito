@@ -56,24 +56,24 @@ export const convertFormDataToVooData = (formData: FormData): VooData => {
 };
 
 // Função para lidar com erros de API
-const handleApiError = (error: any, endpoint: string) => {
+const handleApiError = (error: Error, endpoint: string) => {
   console.error(`Erro ao chamar ${endpoint}:`, error);
   
   // Verificar se é um erro de timeout
-  if (error.code === 'ECONNABORTED' || error.message?.includes('timeout')) {
+  if (error.message?.includes('timeout')) {
     console.warn(`Timeout ao chamar ${endpoint}. Tentando novamente...`);
     return null; // Retorna null para permitir que o retry do axios-retry funcione
   }
   
   // Verificar se é um erro de rede
-  if (!error.response) {
+  if (!error.message?.includes('response')) {
     console.error(`Erro de rede ao chamar ${endpoint}. Verifique sua conexão.`);
     return null;
   }
   
   // Verificar se é um erro do servidor
-  if (error.response.status >= 500) {
-    console.error(`Erro do servidor (${error.response.status}) ao chamar ${endpoint}.`);
+  if (error.message?.includes('500')) {
+    console.error(`Erro do servidor (500) ao chamar ${endpoint}.`);
     return null;
   }
   
@@ -83,7 +83,7 @@ const handleApiError = (error: any, endpoint: string) => {
 };
 
 // Função para fazer uma chamada à API com retry manual
-const callApiWithRetry = async (endpoint: string, data: any, maxRetries = 2) => {
+const callApiWithRetry = async (endpoint: string, data: Record<string, unknown>, maxRetries = 2) => {
   let retries = 0;
   
   while (retries <= maxRetries) {
@@ -92,7 +92,7 @@ const callApiWithRetry = async (endpoint: string, data: any, maxRetries = 2) => 
       const response = await axiosInstance.post(endpoint, data);
       console.log(`Resposta de ${endpoint}:`, response.data);
       return response.data;
-    } catch (error) {
+    } catch (err) {
       retries++;
       
       if (retries > maxRetries) {

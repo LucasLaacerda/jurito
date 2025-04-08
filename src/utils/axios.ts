@@ -1,10 +1,10 @@
-import axios from 'axios';
+import axios, { AxiosError } from 'axios';
 import axiosRetry from 'axios-retry';
 import { toast } from 'react-hot-toast';
 
 // Configuração global do axios
 const axiosInstance = axios.create({
-  baseURL: 'https://web-production-192c4.up.railway.app',
+  baseURL: process.env.NEXT_PUBLIC_JURITO_BACKEND_URL,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -15,10 +15,9 @@ const axiosInstance = axios.create({
 axiosRetry(axiosInstance, { 
   retries: 3,
   retryDelay: axiosRetry.exponentialDelay,
-  retryCondition: (error: any) => {
+  retryCondition: (error: AxiosError) => {
     return axiosRetry.isNetworkOrIdempotentRequestError(error) || 
-           error.code === 'ECONNABORTED' || 
-           error.message.includes('timeout');
+           (error instanceof Error && error.message.includes('timeout'));
   }
 });
 
@@ -34,20 +33,11 @@ axiosInstance.interceptors.request.use(
   }
 );
 
-interface AxiosError {
-  response?: {
-    data?: {
-      message?: string;
-    };
-  };
-  message: string;
-}
-
 // Interceptor para tratar erros de resposta
 axiosInstance.interceptors.response.use(
   (response) => response,
-  (error: AxiosError) => {
-    const errorMessage = error.response?.data?.message || error.message;
+  (error: AxiosError<{ message: string }>) => {
+    const errorMessage = error.response?.data?.message || error.message || 'Ocorreu um erro na requisição';
     toast.error(errorMessage);
     return Promise.reject(error);
   }
