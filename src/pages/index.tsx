@@ -241,23 +241,31 @@ export default function Home() {
                resumo: string,
                regulacoes: string
              ) => {
-               // coercões para garantir string simples
-               const nome             = Array.isArray(dados.nome)             ? dados.nome[0]             : dados.nome;
-               const companhiaAerea   = Array.isArray(dados.companhiaAerea)   ? dados.companhiaAerea[0]   : dados.companhiaAerea;
-               const valorCompensacao = Array.isArray(dados.valorCompensacao) ? dados.valorCompensacao[0] : dados.valorCompensacao;
-            
-               return `PETIÇÃO INICIAL\n
-                Exmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n
-                ${nome}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${companhiaAerea}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\n
-                FATOS\n\n${resumo}\n\n
-                DIREITO\n\n${regulacoes}\n\n
-                PEDIDO\n\nAnte o exposto, requer:\n
-                1. A citação da ré…\n
-                3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${valorCompensacao}, a título de reembolso…\n
-                4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${(parseFloat(valorCompensacao.replace(/\./g, '').replace(',', '.')) * 2).toFixed(2)}…\n\n
-                Nestes termos,\nPede deferimento.\n\n
-                São Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n
-                ${nome}\nCPF: XXX.XXX.XXX-XX`;
+               // coercões para garantir string simples e fallback
+                const nomeRaw             = Array.isArray(dados.nome)             ? dados.nome[0]             : dados.nome;
+                const companhiaRaw        = Array.isArray(dados.companhiaAerea)   ? dados.companhiaAerea[0]   : dados.companhiaAerea;
+                let   valorCompRaw        = Array.isArray(dados.valorCompensacao) ? dados.valorCompensacao[0] : dados.valorCompensacao;
+                if (!valorCompRaw) valorCompRaw = "0";               // evita undefined
+
+                // normaliza o número para cálculo
+                const valorClean          = valorCompRaw
+                  .replace(/\./g, '')     // remove pontos de milhar
+                  .replace(',', '.');     // virgula => ponto
+                const valorNumber         = parseFloat(valorClean) || 0;
+                const valorDanMorais      = (valorNumber * 2).toFixed(2);
+                return `PETIÇÃO INICIAL\n\n
+              Exmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n
+              ${nomeRaw}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${companhiaRaw}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\n
+              FATOS\n\n${resumo}\n\n
+              DIREITO\n\n${regulacoes}\n\n
+              PEDIDO\n\n
+              1. A citação da ré, na forma da lei;\n
+              2. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n
+              3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${valorCompRaw}, a título de reembolso do valor da passagem e despesas adicionais;\n
+              4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${valorDanMorais}, a título de compensação pelos transtornos sofridos;\n\n
+              Nestes termos,\nPede deferimento.\n\n
+              São Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n
+              ${nomeRaw}\nCPF: XXX.XXX.XXX-XX`;
             };
 
           const probabilidadeVitoria = extrairProbabilidade(viabilidadeTexto);
