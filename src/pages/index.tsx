@@ -11,7 +11,6 @@ import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 import Link from 'next/link';
-import Image from 'next/image';
 import api, { convertFormDataToVooData } from '../services/api';
 
 // URL base da API
@@ -87,24 +86,6 @@ export const getStaticProps: GetStaticProps = async ({ locale }) => {
   };
 };
 
-interface FormData {
-  nome: string;
-  email: string;
-  telefone: string;
-  tipoCaso: CasoType;
-  numeroVoo: string;
-  dataVoo: string;
-  companhiaAerea: string;
-  descricao: string;
-  valorCompensacao: string;
-  origem: string;
-  destino: string;
-  cpf: string;
-  cidadeEstado: string;
-  oferecido: string[];
-  anexos: string[];
-}
-
 export default function Home() {
   const { t } = useTranslation('common');
   const router = useRouter();
@@ -113,7 +94,7 @@ export default function Home() {
   const [step, setStep] = useState(0); // Começamos com o step 0 (tela inicial)
   const [[page, direction], setPage] = useState([0, 0]);
   const [isMobile, setIsMobile] = useState(false);
-  const [formData, setFormData] = useState<FormData>({
+  const [formData, setFormData] = useState({
     nome: "",
     email: "",
     telefone: "",
@@ -220,11 +201,18 @@ export default function Home() {
           console.log("Resultados das chamadas à API:", results);
           
           // Extrair os resultados bem-sucedidos
-          const resumo = results[0].status === 'fulfilled' ? results[0].value : null;
-          const regulacoes = results[1].status === 'fulfilled' ? results[1].value : null;
-          const viabilidade = results[2].status === 'fulfilled' ? results[2].value : null;
-          const compensacao = results[3].status === 'fulfilled' ? results[3].value : null;
-          const planoAcao = results[4].status === 'fulfilled' ? results[4].value : null;
+          const respostas = results.map(r =>
+            r.status === 'fulfilled' && r.value?.dados?.resposta
+              ? r.value.dados.resposta
+              : null
+          );
+          const [
+            resumoTexto,
+            regulacoesTexto,
+            viabilidadeTexto,
+            compensacaoTexto,
+            planoAcaoTexto
+          ] = respostas;
           
           // Verificar quantos endpoints falharam
           const falhas = results.filter(r => r.status === 'rejected').length;
@@ -241,33 +229,36 @@ export default function Home() {
             toast("Alguns dados não puderam ser carregados. Continuando com informações disponíveis.");
           }
           
-          // Gerar a petição com base nos dados e respostas da API
+          const extrairProbabilidade = (texto: string | null): number => {
+            const match = texto?.match(/(\d+)%/);
+            return match ? Math.min(100, Math.max(0, parseInt(match[1], 10))) : 85;
+          };
+          const extrairValor = (texto: string | null): number => {
+            const match = texto?.match(/R\$\s*(\d+(?:\.\d{3})*(?:,\d{2})?)/);
+            if (match) {
+              const num = parseFloat(match[1].replace(/\./g, '').replace(',', '.'));
+              return isNaN(num) ? parseFloat(formData.valorCompensacao) * 3 : num;
+            }
+            return parseFloat(formData.valorCompensacao) * 3;
+          };
+          
+          const probabilidadeVitoria = extrairProbabilidade(viabilidadeTexto);
+          const valorEstimado      = extrairValor(compensacaoTexto);
+          
           const peticao = gerarPeticao(
-            formData, 
-            resumo?.resposta || "Não foi possível gerar o resumo.", 
-            regulacoes?.resposta || "Não foi possível avaliar as regulamentações."
+            formData,
+            resumoTexto     || "Não foi possível gerar o resumo.",
+            regulacoesTexto || "Não foi possível avaliar as regulamentações."
           );
-          
-          // Extrair probabilidade e valor estimado, com fallbacks
-          const probabilidadeVitoria = viabilidade?.resposta 
-            ? extrairProbabilidade(viabilidade.resposta) 
-            : 85; // Valor padrão
-          
-          const valorEstimado = compensacao?.resposta 
-            ? extrairValor(compensacao.resposta) 
-            : parseFloat(formData.valorCompensacao) * 3; // Valor padrão
-          
-          // Gerar instruções padrão se não houver resposta
-          const instrucoesPadrao = "1. Imprima a petição em 3 vias\n2. Assine todas as vias\n3. Apresente na vara cível do seu município\n4. Guarde uma via para seus registros\n5. Acompanhe o processo pelo número que será fornecido no protocolo";
           
           setResultado({
             peticao,
             probabilidadeVitoria,
             valorEstimado,
-            instrucoes: planoAcao?.resposta || instrucoesPadrao,
-            resumo: resumo?.resposta || "Não foi possível gerar o resumo.",
-            regulacoes: regulacoes?.resposta || "Não foi possível avaliar as regulamentações.",
-            planoAcao: planoAcao?.resposta || "Não foi possível gerar o plano de ação.",
+            instrucoes: planoAcaoTexto    || "Instruções padrão…",
+            resumo:     resumoTexto       || "Não foi possível gerar o resumo.",
+            regulacoes: regulacoesTexto   || "Não foi possível avaliar as regulamentações.",
+            planoAcao:  planoAcaoTexto    || "Não foi possível gerar o plano de ação.",
           });
           
           setLoading(false);
@@ -306,7 +297,7 @@ export default function Home() {
   };
 
   // Função para gerar a petição com base nos dados e respostas da API
-  const gerarPeticao = (dados: FormData, resumo: string, regulacoes: string) => {
+  const gerarPeticao = (dados: any, resumo: string, regulacoes: string) => {
     return `PETIÇÃO INICIAL\n\nExmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n${dados.nome}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${dados.companhiaAerea}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\nFATOS\n\n${resumo}\n\nDIREITO\n\n${regulacoes}\n\nPEDIDO\n\nAnte o exposto, requer:\n\n1. A citação da ré, na forma da lei;\n\n2. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${dados.valorCompensacao}, a título de reembolso do valor da passagem e despesas adicionais;\n\n4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${(parseFloat(dados.valorCompensacao) * 2).toFixed(2)}, a título de compensação pelos transtornos sofridos;\n\n5. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50;\n\n6. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n7. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50.\n\nNestes termos,\nPede deferimento.\n\nSão Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n${dados.nome}\nCPF: XXX.XXX.XXX-XX`;
   };
 
@@ -406,11 +397,9 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
                 className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mx-auto mb-1"
               >
-                <Image 
+                <img 
                   src="/images/logo.png" 
                   alt="Jurito Logo" 
-                  width={224}
-                  height={224}
                   className="w-full h-full object-contain"
                 />
               </motion.div>
@@ -942,7 +931,7 @@ export default function Home() {
                     <div className="mb-8 p-6 bg-gradient-to-r from-emerald-500/20 to-teal-500/20 rounded-xl border border-emerald-500/30">
                       <p className="text-white/80 text-sm mb-2">{t('result.compensation')}</p>
                       <p className="text-4xl sm:text-5xl font-bold text-white">
-                        R$ {Number(formData.valorCompensacao).toFixed(2).replace('.', ',')}
+                        R$ {resultado.valorEstimado.toFixed(2).replace('.', ',')}
                       </p>
                     </div>
                     
