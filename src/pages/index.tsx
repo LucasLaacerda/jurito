@@ -3,18 +3,17 @@
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster, toast } from "react-hot-toast";
-import { Plane, Clock, Calendar, CheckCircle, ArrowRight, FileText, Percent, DollarSign, Info, Scale, Shield, Zap, Globe } from "lucide-react";
-import LoadingDots from "../components/LoadingDots";
+import { Plane, ArrowRight, FileText, Percent, Shield, Zap, Globe } from "lucide-react";import LoadingDots from "../components/LoadingDots";
 import DropDown, { CasoType } from "../components/DropDown";
 import { useTranslation } from 'next-i18next';
 import { serverSideTranslations } from 'next-i18next/serverSideTranslations';
 import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
-import Link from 'next/link';
+//import Link from 'next/link';
 import api, { convertFormDataToVooData } from '../services/api';
 
 // URL base da API
-const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
+//const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
 
 // Variantes de animação para as transições
 const pageVariants = {
@@ -164,13 +163,6 @@ export default function Home() {
     }
   };
 
-  const removeAnexo = (index: number) => {
-    setFormData((prev) => {
-      const anexos = [...prev.anexos];
-      anexos.splice(index, 1);
-      return { ...prev, anexos };
-    });
-  };
 
   const paginate = (newDirection: number) => {
     setPage([page + newDirection, newDirection]);
@@ -242,6 +234,11 @@ export default function Home() {
             return parseFloat(formData.valorCompensacao) * 3;
           };
           
+          // Função para gerar a petição com base nos dados e respostas da API
+          const gerarPeticao = (dados: any, resumo: string, regulacoes: string) => {
+            return `PETIÇÃO INICIAL\n\nExmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n${dados.nome}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${dados.companhiaAerea}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\nFATOS\n\n${resumo}\n\nDIREITO\n\n${regulacoes}\n\nPEDIDO\n\nAnte o exposto, requer:\n\n1. A citação da ré, na forma da lei;\n\n2. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${dados.valorCompensacao}, a título de reembolso do valor da passagem e despesas adicionais;\n\n4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${(parseFloat(dados.valorCompensacao) * 2).toFixed(2)}, a título de compensação pelos transtornos sofridos;\n\n5. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50;\n\n6. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n7. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50.\n\nNestes termos,\nPede deferimento.\n\nSão Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n${dados.nome}\nCPF: XXX.XXX.XXX-XX`;
+          };
+
           const probabilidadeVitoria = extrairProbabilidade(viabilidadeTexto);
           const valorEstimado      = extrairValor(compensacaoTexto);
           
@@ -273,33 +270,8 @@ export default function Home() {
     }
   };
 
-  // Função para extrair a probabilidade de sucesso do texto da resposta
-  const extrairProbabilidade = (texto: string): number => {
-    // Tenta encontrar um número de 0 a 100 seguido de % no texto
-    const match = texto.match(/(\d+)%/);
-    if (match && match[1]) {
-      const valor = parseInt(match[1], 10);
-      return isNaN(valor) ? 85 : Math.min(100, Math.max(0, valor));
-    }
-    return 85; // Valor padrão se não encontrar
-  };
 
-  // Função para extrair o valor de compensação do texto da resposta
-  const extrairValor = (texto: string): number => {
-    // Tenta encontrar um valor monetário no formato R$ X.XXX,XX ou R$ XXXX,XX
-    const match = texto.match(/R\$\s*(\d+(?:\.\d{3})*(?:,\d{2})?)/);
-    if (match && match[1]) {
-      const valorStr = match[1].replace('.', '').replace(',', '.');
-      const valor = parseFloat(valorStr);
-      return isNaN(valor) ? parseFloat(formData.valorCompensacao) * 3 : valor;
-    }
-    return parseFloat(formData.valorCompensacao) * 3; // Valor padrão se não encontrar
-  };
-
-  // Função para gerar a petição com base nos dados e respostas da API
-  const gerarPeticao = (dados: any, resumo: string, regulacoes: string) => {
-    return `PETIÇÃO INICIAL\n\nExmo(a) Sr(a). Dr(a). Juiz(a) de Direito da Vara Cível da Comarca de São Paulo\n\n${dados.nome}, brasileiro(a), portador(a) da Cédula de Identidade RG nº XXX.XXX.XXX-X, inscrito(a) no CPF sob nº XXX.XXX.XXX-XX, residente e domiciliado(a) na Rua Exemplo, nº 123, Bairro Centro, São Paulo/SP, vem, respeitosamente, à presença de Vossa Excelência, propor a presente AÇÃO DE INDENIZAÇÃO POR DANOS MATERIAIS E MORAIS em face de ${dados.companhiaAerea}, pessoa jurídica de direito privado, inscrita no CNPJ sob nº XX.XXX.XXX/0001-XX, com sede na Rua da Companhia, nº 456, Bairro Aeroporto, São Paulo/SP, pelos fatos e fundamentos a seguir expostos:\n\nFATOS\n\n${resumo}\n\nDIREITO\n\n${regulacoes}\n\nPEDIDO\n\nAnte o exposto, requer:\n\n1. A citação da ré, na forma da lei;\n\n2. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n3. A condenação da ré ao pagamento de indenização por danos materiais no valor de R$ ${dados.valorCompensacao}, a título de reembolso do valor da passagem e despesas adicionais;\n\n4. A condenação da ré ao pagamento de indenização por danos morais no valor de R$ ${(parseFloat(dados.valorCompensacao) * 2).toFixed(2)}, a título de compensação pelos transtornos sofridos;\n\n5. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50;\n\n6. A inversão do ônus da prova, nos termos do art. 6º, VIII, do CDC;\n\n7. A concessão dos benefícios da justiça gratuita, nos termos da Lei 1.060/50.\n\nNestes termos,\nPede deferimento.\n\nSão Paulo, ${new Date().toLocaleDateString('pt-BR')}.\n\n${dados.nome}\nCPF: XXX.XXX.XXX-XX`;
-  };
+  
 
   const handleBackStep = () => {
     if (step > 0) {
