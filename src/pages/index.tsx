@@ -384,7 +384,7 @@ export default function Home() {
             animate="center"
             exit="exit"
             transition={pageTransition}
-            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6 h-full flex flex-col justify-start"
+            className="w-full max-w-3xl mx-auto text-center px-4 sm:px-6 h-full flex flex-col justify-between"
           >
             <motion.div 
               initial={{ opacity: 0, y: 20 }}
@@ -1117,7 +1117,14 @@ export default function Home() {
       </motion.header>
       
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-4 sm:py-6 flex flex-col items-center justify-center relative">
-        <div className={`w-full ${step === 4 ? 'h-auto min-h-[500px]' : step === 0 ? 'h-screen' : 'min-h-[600px]'} flex items-start justify-center overflow-hidden pt-4`}>
+      <div
+         className={`w-full ${
+           step === 4
+             ? 'h-auto min-h-[500px]'
+             : step === 0
+             ? 'h-screen'
+             : 'min-h-[600px]'
+         } flex items-start justify-center overflow-y-auto pt-4`}>
           {loading ? (
             <motion.div 
               initial={{ opacity: 0 }}
