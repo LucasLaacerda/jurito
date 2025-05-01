@@ -11,6 +11,7 @@ import { GetStaticProps } from 'next';
 import { useRouter } from 'next/router';
 //import Link from 'next/link';
 import api, { convertFormDataToVooData } from '../services/api';
+import Image from 'next/image';
 
 // URL base da API
 //const API_URL = process.env.NEXT_PUBLIC_JURITO_BACKEND_URL;
@@ -369,10 +370,12 @@ export default function Home() {
                 transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
                 className="w-48 h-48 sm:w-56 sm:h-56 flex items-center justify-center mx-auto mb-1"
               >
-                <img 
+                <Image 
                   src="/images/logo.png" 
                   alt="Jurito Logo" 
-                  className="w-full h-full object-contain"
+                  width={224}
+                  height={224}   
+                  className="object-contain mx-auto mb-1"
                 />
               </motion.div>
               <motion.h1 
